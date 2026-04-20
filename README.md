@@ -10,8 +10,7 @@ A web application to help you learn and memorize English vocabulary using flashc
 
 | Add Words | Learning Mode | Word Storage |
 |-----------|---------------|---------------|
-| ![Add Words](screenshots/addWords.png) | ![Learning](screenshots/learnWords.png) | ![Storage](screenshots/store.png) |
-
+| ![Add Words](sreenshots/addWords.png) | ![Learning](sreenshots/learnWords.png) | ![Storage](sreenshots/store.png) |
 ---
 
 ## ✨ Features
