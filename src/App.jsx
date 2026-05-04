@@ -166,40 +166,35 @@ function App() {
     localforage.setItem('cards', labraryWords);
   }, [labraryWords])
   return (
-    <>
-
-      {learnWords && renderLearnSection()}
-      {!learnWords && !addWords && !storage && (
-        <StartScreen
-          showLearnWords={showLearnWords}
-          showAddWords={showAddWords}
-          goToStorage={goToStorage}
-        />
-      )}
-      {addWords && (
-        <AddCard
-          setEngishWord={setEngishWord}
-          setLinkImg={setLinkImg}
-          setRussianWord={setRussianWord}
-          addInLabruary={addInLabruary}
-          backToStart={backToStart}
-          englishWord={englishWord}
-          linkImg={linkImg}
-          russianWord={russianWord}
-
-        />
-      )}
-      {storage && (
-        insideStorage()
-      )}
-
-      {toast.message && (
-        <div className={`toast toast-${toast.type}`}>
-          {toast.message}
-        </div>
-      )}
-    </>
-  )
+  <div className="app">
+    {learnWords && renderLearnSection()}
+    {!learnWords && !addWords && !storage && (
+      <StartScreen
+        showLearnWords={showLearnWords}
+        showAddWords={showAddWords}
+        goToStorage={goToStorage}
+      />
+    )}
+    {addWords && (
+      <AddCard
+        setEngishWord={setEngishWord}
+        setLinkImg={setLinkImg}
+        setRussianWord={setRussianWord}
+        addInLabruary={addInLabruary}
+        backToStart={backToStart}
+        englishWord={englishWord}
+        linkImg={linkImg}
+        russianWord={russianWord}
+      />
+    )}
+    {storage && insideStorage()}
+    {toast.message && (
+      <div className={`toast toast-${toast.type}`}>
+        {toast.message}
+      </div>
+    )}
+  </div>
+);
 }
 
 export default App

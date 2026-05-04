@@ -1,31 +1,26 @@
-import React from "react";
+import React from 'react';
 
-function StartScreen({ showLearnWords, showAddWords,goToStorage }) {
-
-
-    return <>
-        <div className='start_monitor'>
-            <button
-                className='learn_words'
-                onClick={() => showLearnWords()}
-            >Учить слова</button>
-            <button
-                className='add_words'
-                onClick={() => showAddWords()}
-            >Добавить слова</button>
+function StartScreen({ showLearnWords, showAddWords, goToStorage }) {
+  return (
+    <div className="start-screen">
+      <div className="start-card">
+        <h1 className="start-title">📖 Learn English Words</h1>
+        <p className="start-subtitle">Интерактивный тренажёр английской лексики</p>
+        
+        <div className="start-buttons">
+          <button className="start-btn learn" onClick={showLearnWords}>
+            🧠 Учить слова
+          </button>
+          <button className="start-btn add" onClick={showAddWords}>
+            ➕ Добавить слова
+          </button>
+          <button className="start-btn storage" onClick={goToStorage}>
+            📚 Хранилище
+          </button>
         </div>
-        <div className="container_storage"
-        >
-            <div
-            className="storage"
-            >
-                <button
-                className="go_toStorage"
-                onClick={()=>goToStorage()}
-                >Хранилище</button>
-            </div>
-        </div>
-    </>
+      </div>
+    </div>
+  );
 }
 
 export default StartScreen;
