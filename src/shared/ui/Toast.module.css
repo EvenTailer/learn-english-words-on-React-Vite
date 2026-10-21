@@ -1,0 +1,40 @@
+/* ===== TOAST-УВЕДОМЛЕНИЯ ===== */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 0.9rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  animation: toast-in 0.25s ease-out;
+}
+
+.toast-success {
+  background: linear-gradient(105deg, #3b82f6, #1d4ed8);
+  border-color: rgba(147, 197, 253, 0.45);
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
+}
+
+.toast-error {
+  background: linear-gradient(105deg, #e63946, #c82333);
+  border-color: rgba(252, 165, 165, 0.4);
+  box-shadow: 0 12px 30px rgba(230, 57, 70, 0.4);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

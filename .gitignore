@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI-инструменты (создаются warden init, не часть приложения)
+.warden/
+.opencode/
+.openhands/
+.devin/
+.goose/
+.github/copilot-instructions.md
+AGENTS.md
+CLAUDE.md
+CONVENTIONS.md
+GEMINI.md
+.clinerules
+.continuerules
+.cursorrules
+.mcprules
+.zedrules

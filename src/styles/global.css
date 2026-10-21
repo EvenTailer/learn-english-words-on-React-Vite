@@ -1,0 +1,96 @@
+/* ===== ГЛОБАЛЬНЫЕ СТИЛИ (не модульные) ===== */
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue',
+    Arial, sans-serif;
+
+  --color-bg: #0f172a;
+  --color-surface: rgba(30, 41, 59, 0.6);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text: #e2e8f0;
+  --color-text-light: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-accent: #3b82f6;
+  --color-accent-dark: #1d4ed8;
+}
+
+html {
+  height: 100%;
+  background-color: #0f172a;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Мягкое свечение за контентом */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+      circle at 15% 20%,
+      rgba(59, 130, 246, 0.18),
+      transparent 45%
+    ),
+    radial-gradient(circle at 85% 0%, rgba(148, 163, 184, 0.12), transparent 40%);
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
