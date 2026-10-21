@@ -115,11 +115,44 @@
   flex: 0 0 auto;
 }
 
-.lookupError {
+.lookupWarn,
+.lookupFail {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+}
+
+.lookupWarn {
+  background: var(--warning-soft);
+  border-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.lookupFail {
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.lookupBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.lookupText {
   margin: 0;
   font-size: var(--text-label);
   line-height: var(--lh-relaxed);
-  color: var(--danger);
+}
+
+.lookupActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 /* Что нашлось в словаре */
@@ -289,7 +322,6 @@
 
   .preview {
     position: static;
-    order: -1;
   }
 }
 
@@ -369,4 +401,14 @@
   font-size: var(--text-caption);
   color: var(--text-3);
   white-space: nowrap;
+}
+
+/* Главная кнопка липнет к низу — её видно на любом экране */
+.stickySubmit {
+  position: sticky;
+  bottom: var(--space-3);
+  z-index: var(--z-sticky);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--surface-canvas);
 }

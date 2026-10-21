@@ -49,6 +49,7 @@ export default function AddPage() {
   const [justAdded, setJustAdded] = useState('');
   const [variants, setVariants] = useState([]);
   const [existingCard, setExistingCard] = useState(null);
+  const [lookupState, setLookupState] = useState(''); // '' | 'not-found' | 'error'
 
   const englishRef = useRef(null);
   const russianRef = useRef(null);
@@ -121,6 +122,17 @@ export default function AddPage() {
     englishRef.current?.focus();
   };
 
+  // Enter в поле слова ищет, а не сохраняет — пока слово не найдено
+  const handleWordKeyDown = (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    if (found) {
+      event.currentTarget.form?.requestSubmit();
+      return;
+    }
+    handleLookup();
+  };
+
   // Поиск перевода, транскрипции и картинки в открытом словаре
   const handleLookup = () => {
     const word = englishWord.trim();
@@ -150,15 +162,12 @@ export default function AddPage() {
         }
       })
       .catch((error) => {
-        setLookupError(
-          String(error?.message ?? error) || 'Не получилось найти слово'
+        const message = String(error?.message ?? error) || 'Не получилось найти слово';
+        setLookupState(
+          /не найдено/i.test(message) ? 'not-found' : 'error'
         );
-        dispatch(
-          toastShown({
-            message: String(error?.message ?? error),
-            type: 'error',
-          })
-        );
+        setLookupError(message);
+        dispatch(toastShown({ message, type: 'error' }));
       });
   };
 
@@ -321,10 +330,17 @@ export default function AddPage() {
           </header>
 
           {justAdded ? (
-            <p className={styles.added} role="status">
+            <div className={styles.added} role="status">
               <Icon name="check" size={18} />
-              «{justAdded}» в словаре. Можно добавить ещё.
-            </p>
+              <span>«{justAdded}» — в словаре. Можно добавить ещё.</span>
+              <Button
+                variant="ghost"
+                onClick={() => setJustAdded('')}
+                ariaLabel="Убрать сообщение"
+              >
+                ОК
+              </Button>
+            </div>
           ) : null}
 
           {/* Шаг 1 — найти слово */}
@@ -339,6 +355,7 @@ export default function AddPage() {
                 label="Английское слово"
                 value={englishWord}
                 onChange={handleEnglishChange}
+                onKeyDown={handleWordKeyDown}
                 placeholder="Например: fantastic"
                 error={englishError}
                 inputRef={englishRef}
@@ -400,9 +417,36 @@ export default function AddPage() {
             </Button>
 
             {lookupError ? (
-              <p className={styles.lookupError} role="status">
-                {lookupError}
-              </p>
+              <div
+                className={
+                  lookupState === 'not-found'
+                    ? styles.lookupWarn
+                    : styles.lookupFail
+                }
+                role="status"
+              >
+                <Icon name="close" size={20} />
+                <div className={styles.lookupBody}>
+                  <p className={styles.lookupText}>{lookupError}</p>
+                  <div className={styles.lookupActions}>
+                    <Button
+                      variant="secondary"
+                      onClick={handleLookup}
+                      icon={<Icon name="search" size={18} />}
+                    >
+                      Повторить поиск
+                    </Button>
+                    {lookupState === 'not-found' ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => russianRef.current?.focus()}
+                      >
+                        Ввести перевод
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
             ) : null}
 
             {/* Что нашлось — сразу видно, что словарь дал */}
@@ -583,16 +627,18 @@ export default function AddPage() {
           </div>
 
           <div className={styles.actions}>
-            <Button
-              variant={isReady || needsSet ? 'primary' : 'secondary'}
-              type="submit"
-              size="lg"
-              fullWidth
-              disabled={!isReady && !needsSet}
-              icon={<Icon name="plus" size={20} />}
-            >
-              {existingCard ? 'Добавить в набор' : 'Добавить в словарь'}
-            </Button>
+            <div className={styles.stickySubmit}>
+              <Button
+                variant={isReady || needsSet ? 'primary' : 'secondary'}
+                type="submit"
+                size="lg"
+                fullWidth
+                disabled={!isReady && !needsSet}
+                icon={<Icon name="plus" size={20} />}
+              >
+                {existingCard ? 'Добавить в набор' : 'Добавить в словарь'}
+              </Button>
+            </div>
             <Button variant="ghost" type="button" onClick={resetForm}>
               Очистить
             </Button>

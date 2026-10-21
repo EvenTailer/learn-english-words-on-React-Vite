@@ -12,6 +12,7 @@ export default function Input({
   id,
   value,
   onChange,
+  onKeyDown,
   placeholder,
   type = 'text',
   hint,
@@ -72,6 +73,7 @@ export default function Input({
           type={type}
           value={value}
           onChange={handleChange}
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
           disabled={disabled}
           readOnly={readOnly}
