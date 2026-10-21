@@ -17,6 +17,7 @@ import Icon from '../shared/ui/Icon';
 import SearchField from '../shared/ui/SearchField';
 import Select from '../shared/ui/Select';
 import AddToListModal from '../widgets/AddToList/AddToListModal';
+import SetCreateModal from '../widgets/SetCreateModal/SetCreateModal';
 import WordCard from '../widgets/WordCard/WordCard';
 import styles from './StoragePage.module.css';
 
@@ -50,6 +51,7 @@ export default function StoragePage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [listTargetId, setListTargetId] = useState(null);
+  const [isCreatingSet, setIsCreatingSet] = useState(false);
 
   const filtered = useMemo(
     () => filterCards(cards, { query, status, progressMap }),
@@ -247,6 +249,15 @@ export default function StoragePage() {
         card={listTargetCard}
         open={Boolean(listTargetCard)}
         onClose={() => setListTargetId(null)}
+        onCreate={() => {
+          setListTargetId(null);
+          setIsCreatingSet(true);
+        }}
+      />
+
+      <SetCreateModal
+        open={isCreatingSet}
+        onClose={() => setIsCreatingSet(false)}
       />
     </div>
   );

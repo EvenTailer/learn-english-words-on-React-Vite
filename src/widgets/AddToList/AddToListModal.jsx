@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../app/store/hooks';
 import { selectLists } from '../../features/lists/selectors';
 import { wordsAddedToList } from '../../features/lists/listsSlice';
 import { toastShown } from '../../features/ui/toastSlice';
+import { sets } from '../../shared/lib/plural';
 import Button from '../../shared/ui/Button';
 import Chip from '../../shared/ui/Chip';
 import EmptyState from '../../shared/ui/EmptyState';
@@ -14,7 +15,7 @@ import styles from './AddToListModal.module.css';
  * Окно «Добавить в набор»: выбираем свои наборы для слова.
  * Слово добавляется сразу, если его ещё нет.
  */
-export default function AddToListModal({ card, open, onClose }) {
+export default function AddToListModal({ card, open, onClose, onCreate }) {
   const dispatch = useAppDispatch();
   const lists = useAppSelector(selectLists);
 
@@ -68,7 +69,7 @@ export default function AddToListModal({ card, open, onClose }) {
 
     dispatch(
       toastShown({
-        message: `Добавлено в наборов: ${selected.length}`,
+        message: `Добавлено в ${selected.length} ${sets(selected.length)}`,
         type: 'success',
       })
     );
@@ -99,8 +100,15 @@ export default function AddToListModal({ card, open, onClose }) {
       {lists.length === 0 ? (
         <EmptyState
           title="Своих наборов нет"
-          description="Создайте набор на странице «Наборы» — там есть вкладка «Мои наборы»."
+          description="Создайте набор — и добавляйте в него слова прямо отсюда."
           icon={<Icon name="list" size={28} />}
+          action={
+            onCreate ? (
+              <Button variant="primary" onClick={onCreate}>
+                Создать набор
+              </Button>
+            ) : null
+          }
         />
       ) : (
         <div className={styles.chips} role="group" aria-label="Наборы">

@@ -120,7 +120,7 @@ export default function MyLists({ onCreate }) {
           icon={<Icon name="list" size={32} />}
           action={
             <Button
-              variant="primary"
+              variant="secondary"
               icon={<Icon name="plus" size={20} />}
               onClick={handleCreate}
             >

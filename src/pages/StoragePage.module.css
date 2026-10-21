@@ -99,7 +99,7 @@
   }
 
   .title {
-    font-size: var(--fs-24);
+    font-size: var(--text-h1-sm);
   }
 
   .searchRow {

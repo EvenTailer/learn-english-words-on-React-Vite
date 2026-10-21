@@ -170,7 +170,7 @@ export default function LearnCard({
               key={option}
               type="button"
               className={choiceClass(option)}
-              disabled={revealed}
+              disabled={revealed || Boolean(verdict)}
               onClick={() => onChoose?.(option)}
             >
               {option}
