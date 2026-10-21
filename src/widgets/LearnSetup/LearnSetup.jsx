@@ -40,10 +40,13 @@ export default function LearnSetup() {
 
   const [source, setSource] = useState(LEARN_SOURCES.ALL);
   const [setKey, setSetKey] = useState(WORD_SETS[0].key);
-  const [listId, setListId] = useState(lists[0]?.id ?? '');
+  const [listId, setListId] = useState('');
   const [size, setSize] = useState('20');
   const [answerMode, setAnswerMode] = useState(ANSWER_MODES.TEXT);
   const [directionChoice, setDirectionChoice] = useState(direction);
+
+  // Списки приезжают из persist позже — берём первый, если ещё не выбран
+  const activeListId = listId || lists[0]?.id || '';
 
   // Наборы, слова которых уже есть в словаре
   const importedSets = useMemo(() => {
@@ -54,7 +57,7 @@ export default function LearnSetup() {
     return keys;
   }, [cards]);
 
-  const selectedList = lists.find((list) => list.id === listId) ?? null;
+  const selectedList = lists.find((list) => list.id === activeListId) ?? null;
 
   // Сколько слов попадёт в тренировку при текущем выборе
   // Текущее время берётся внутри selectPool — компонент остаётся чистым
@@ -62,7 +65,7 @@ export default function LearnSetup() {
     const plan = {
       source,
       setKey,
-      listId,
+      listId: activeListId,
       size: size === 'all' ? 'all' : Number(size),
       direction: directionChoice,
       answerMode,
@@ -77,7 +80,7 @@ export default function LearnSetup() {
     progressMap,
     source,
     setKey,
-    listId,
+    activeListId,
     size,
     directionChoice,
     answerMode,
@@ -89,7 +92,7 @@ export default function LearnSetup() {
       startLearn({
         source,
         setKey,
-        listId,
+        listId: activeListId,
         size: size === 'all' ? 'all' : Number(size),
         direction: directionChoice,
         answerMode,
@@ -133,7 +136,7 @@ export default function LearnSetup() {
           lists.length > 0 ? (
             <Select
               label="Свой список"
-              value={listId}
+              value={activeListId}
               options={listOptions}
               onChange={setListId}
               hint="Слова из этого списка попадут в тренировку"
