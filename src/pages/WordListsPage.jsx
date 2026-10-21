@@ -52,8 +52,9 @@ export default function WordListsPage() {
       id: createId(),
       englishWord: word.en,
       russianWord: word.ru,
-      // картинка посчитана при сборке набора — она уже в файле
+      // картинка и короткое описание посчитаны при сборке набора
       linkImg: word.img ?? '',
+      definition: word.desc ?? '',
       count: 0,
       level: word.level ?? '',
       sets: [set.key],

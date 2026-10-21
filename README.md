@@ -19,27 +19,39 @@ A web application to help you learn and memorize English vocabulary using flashc
 - **➕ Add new words**
   Enter an English word, its translation, and optionally an image URL or upload an image from your computer. The card is saved to your library.
 
-- **🔍 Словарь по API**
-  Кнопка «Найти в словаре» сама подставляет перевод, транскрипцию, определение и картинку к слову. Без API-ключей и без бэкенда:
-  - `freedictionaryapi.com` — перевод, транскрипция, определения (Wiktionary, CC BY-SA 4.0)
-  - `commons.wikimedia.org` — картинка по слову (нужен `origin=*` для CORS)
-  - `translate.googleapis.com` — резервный перевод EN→RU
-
-- **🔊 Озвучка**
-  Кнопка 🔊 на карточке и в форме добавления — Web Speech API, работает офлайн, без ключей.
+- **🎤 Голосовой ввод**
+  Микрофон рядом с полями: продиктуйте английское слово или перевод — текст подставится сам.
+  Работает в Chrome/Edge на `localhost` и по HTTPS (голос распознаёт Google).
 
 - **🗂️ Готовые наборы слов**
   «Топ 250 / 500 / 1000 / 2000» самых частотых слов и уровни Oxford 3000 (A1–B2) с переводами — одной кнопкой в словарь.
   Списки собираются скриптом `npm run build:wordlists` (источники: Oxford 3000 public domain, CEFR-J Vocabulary Profile, FrequencyWords MIT).
 
+- **🖼️ Картинки в наборах**
+  Скрипт сборки заранее забирает картинки статей Википедии (батчи по 50 слов, кэш в `scripts/.cache`): **925 картинок для 3063 слов**, у предметных слов покрытие до 80%.
+  Картинки произведений (песни, альбомы, фильмы) отсеиваются по описанию статьи.
+  В рантайме приложение не ходит в API — просто показывает готовую ссылку.
+
+- **🗒️ Свои списки слов**
+  Соберите тематические наборы вручную: «Еда», «Путешествия», «Работа». Слова добавляются из «Хранилища» (кнопка «в список») или со страницы «Добавить», затем заливаются в словарь одной кнопкой.
+
+- **🎯 Что учим — экран выбора**
+  Перед тренировкой выбираете: источник слов (все / к повторению / только ошибки / новые / свои списки / готовый набор), направление перевода, формат ответа и размер сессии.
+
+- **📖 Три формата ответа**
+  Ввод текста, выбор правильного перевода из четырёх или аудио-режим: слово звучит, вы его пишете.
+
+- **⏱ Интервальное повторение**
+  Слово после верного ответа «отдыхает» 1 → 3 → 7 → 21 → 60 дней. Выученные слова возвращаются в тренировку по расписанию, а не исчезают навсегда.
+
 - **📖 Learning mode**
-  The app randomly shows either the English word or its Russian translation (50/50 chance). Type your answer – the system checks it and gives instant feedback. After 5 correct answers, the card is removed from the active learning set.
+  The app randomly shows either the English word or its Russian translation (50/50 chance). Type your answer – the system checks it and gives instant feedback. After 5 correct answers, the card leaves the active learning set until its next review date.
 
 - **🗄️ Word storage**
   Browse all your cards in a table. Search by English or Russian word. Delete unwanted cards with one click.
 
 - **🧭 Routing**
-  Real pages and URLs: `/`, `/learn`, `/add`, `/storage`. Browser back/forward works as expected, deep links are shareable.
+  Real pages and URLs: `/`, `/learn`, `/add`, `/storage`, `/wordlists`. Browser back/forward works as expected, deep links are shareable.
 
 - **📱 Responsive design**
   Works smoothly on desktops, tablets, and mobile devices.

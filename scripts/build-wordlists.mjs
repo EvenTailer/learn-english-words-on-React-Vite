@@ -136,6 +136,24 @@ const pool = async (items, worker, limit = CONCURRENCY) => {
 };
 
 /**
+ * Описание статьи по Википедии: «Edible fruit», «1987 studio album by Pet Shop Boys».
+ * Если это произведение, а не обычное слово — картинку не берём.
+ */
+const isWorkOfArt = (description) => {
+  const text = String(description ?? '').toLowerCase();
+  if (!text) return false;
+  if (
+    /\b(song|album|single|ep|movie|film|band|novel|book|musical|play|opera|episode|series|video game|soundtrack|anthem)\b/.test(
+      text
+    )
+  ) {
+    return true;
+  }
+  // описание начинается с года — почти всегда название произведения
+  return /^\d{4}\b/.test(text);
+};
+
+/**
  * Собирает картинки статей Википедии пачками по 50 слов.
  * Кэш в scripts/.cache/images.json — повторный запуск не ходит в сеть.
  * Покрытие: ~30% слов всего, до 80% у предметных существительных.
@@ -151,7 +169,7 @@ const fetchImages = async (words) => {
     const chunk = missing.slice(i, i + IMAGE_BATCH);
     const url =
       `${IMAGES_ENDPOINT}?action=query&titles=${encodeURIComponent(chunk.join('|'))}` +
-      '&prop=pageimages&piprop=thumbnail|original&pilicense=any&pithumbsize=400&format=json&origin=*';
+      '&prop=pageimages|description&piprop=thumbnail|original&pilicense=any&pithumbsize=400&format=json&origin=*';
 
     for (let attempt = 1; attempt <= 3; attempt += 1) {
       try {
@@ -176,8 +194,15 @@ const fetchImages = async (words) => {
           const title = page.title ?? '';
           const word =
             redirected[normalized[title] ?? title] ?? normalized[title] ?? title;
+          const description = page.description ?? '';
           const source = page.thumbnail?.source ?? page.original?.source ?? '';
-          if (source) cache[word] = source;
+
+          if (!source || isWorkOfArt(description)) {
+            cache[word] = { url: '', desc: description };
+            continue;
+          }
+
+          cache[word] = { url: source.split('?')[0], desc: description };
         }
 
         break;
@@ -195,7 +220,7 @@ const fetchImages = async (words) => {
   }
 
   await writeJson(cacheFile, cache);
-  const found = words.filter((word) => cache[word]).length;
+  const found = words.filter((word) => cache[word]?.url).length;
   console.log(`Картинок найдено: ${found} из ${words.length}`);
 
   return cache;
@@ -247,7 +272,6 @@ const main = async () => {
     );
 
   const uniqueFrequency = [...new Set(frequency)];
-
   const cefrSets = {};
   for (const level of ['A1', 'A2', 'B1', 'B2']) {
     cefrSets[level] = (oxford[level] ?? [])
@@ -301,10 +325,13 @@ const main = async () => {
         en: word,
         ru: cache[word] ?? '',
         level: levelByWord.get(word) ?? '',
-        // убираем служебные utm-метки из ссылки на картинку
-        img: (images[word] ?? '').split('?')[0],
+        // картинка из Википедии; произведения (песни, альбомы) отсеяны
+        img: images[word]?.url ?? '',
+        desc: images[word]?.desc ?? '',
       }))
       .filter((item) => item.ru);
+
+
 
   const sets = {};
   for (const [name, words] of Object.entries(topSets)) {

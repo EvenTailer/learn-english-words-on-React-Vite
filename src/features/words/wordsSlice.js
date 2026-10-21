@@ -66,8 +66,11 @@ const wordsSlice = createSlice({
         const key = card.englishWord.toLowerCase();
         const current = existing.get(key);
         if (current) {
-          // слово уже есть — доводим карточку: картинка, перевод, набор
+          // слово уже есть — доводим карточку: картинка, перевод, описание, набор
           if (!current.linkImg && card.linkImg) current.linkImg = card.linkImg;
+          if (!current.definition && card.definition) {
+            current.definition = card.definition;
+          }
           if (!current.russianWord && card.russianWord) {
             current.russianWord = card.russianWord;
           }
