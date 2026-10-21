@@ -3,7 +3,7 @@ import Card from '../../shared/ui/Card';
 import Icon from '../../shared/ui/Icon';
 import styles from './WordListCard.module.css';
 
-const PREVIEW_LIMIT = 6;
+const PREVIEW_LIMIT = 5;
 
 /**
  * Карточка готового набора слов: название, подсказка, размер и импорт.
@@ -20,8 +20,14 @@ export default function WordListCard({
 }) {
   const list = Array.isArray(words) ? words : [];
   const total = Number.isFinite(Number(count)) ? Number(count) : list.length;
+
+  // Превью берём из середины набора: первые слова у всех наборов одинаковые
+  const start = Math.min(
+    Math.max(Math.floor(list.length / 2) - 2, 0),
+    Math.max(list.length - PREVIEW_LIMIT, 0)
+  );
   const preview = list
-    .slice(0, PREVIEW_LIMIT)
+    .slice(start, start + PREVIEW_LIMIT)
     .map((word) => word?.en)
     .filter(Boolean)
     .join(', ');

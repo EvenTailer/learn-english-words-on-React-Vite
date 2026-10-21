@@ -248,10 +248,17 @@
 
 /* Аудио-режим: вместо слова — кнопка прослушивания */
 .audioBlock {
+  order: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
+}
+
+/* Крупная кнопка прослушивания — на 320px её не промахнёшь */
+.audioButton {
+  width: var(--control-h-lg);
+  height: var(--control-h-lg);
 }
 
 .audioHint {

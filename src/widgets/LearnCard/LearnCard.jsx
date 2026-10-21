@@ -118,6 +118,7 @@ export default function LearnCard({
             variant="accent"
             size="lg"
             onClick={onSpeak}
+            className={styles.audioButton}
           />
           <p className={styles.audioHint}>Послушайте слово и напишите его</p>
         </div>
