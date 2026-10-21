@@ -20,6 +20,7 @@ export default function LearnCard({
   answerMode = ANSWER_MODES.TEXT,
   choices = [],
   revealed = false,
+  verdict = null,
   answer = '',
   lastResult = null,
   inputRef,
@@ -55,11 +56,14 @@ export default function LearnCard({
   const choiceClass = (option) => {
     const classes = [styles.choice];
     if (answer === option) classes.push(styles.choiceSelected);
-    if (result?.type === 'correct' && option === correctAnswer) {
+    if (verdict?.correct && option === correctAnswer) {
       classes.push(styles.choiceCorrect);
     }
-    if (result?.type === 'wrong' && answer === option) {
+    if (verdict && !verdict.correct && answer === option) {
       classes.push(styles.choiceWrong);
+    }
+    if (verdict && !verdict.correct && option === correctAnswer) {
+      classes.push(styles.choiceCorrect);
     }
     return classes.join(' ');
   };
@@ -142,6 +146,23 @@ export default function LearnCard({
         </div>
       )}
 
+      {verdict ? (
+        <div
+          className={
+            verdict.correct ? styles.verdictOk : styles.verdictFail
+          }
+          role="status"
+        >
+          <Icon name={verdict.correct ? 'check' : 'close'} size={20} />
+          <span>
+            {verdict.correct
+              ? 'Верно!'
+              : `Неверно. Правильный ответ: ${verdict.answer}`}
+            {verdict.mastered ? ' Слово выучено!' : ''}
+          </span>
+        </div>
+      ) : null}
+
       {isChoice ? (
         <div className={styles.choices} role="group" aria-label="Варианты ответа">
           {choices.map((option) => (
@@ -194,16 +215,16 @@ export default function LearnCard({
           size="lg"
           fullWidth
           icon={
-            revealed ? (
+            verdict || revealed ? (
               <Icon name="arrow-right" size={20} />
             ) : (
               <Icon name="check" size={20} />
             )
           }
-          iconPosition={revealed ? 'end' : 'start'}
+          iconPosition={verdict || revealed ? 'end' : 'start'}
           onClick={onPrimary}
         >
-          {revealed ? 'Дальше' : 'Проверить'}
+          {verdict || revealed ? 'Далее' : 'Проверить'}
         </Button>
 
         <div className={styles.secondary}>

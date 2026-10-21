@@ -77,10 +77,13 @@ export default function WordCard({
 
       {isPreview ? null : (
         <footer className={styles.footer}>
-          <span className={styles.score} title={`Всего верных ответов: ${score}`}>
+          <span
+            className={styles.score}
+            title={`Освоено по расписанию: ${series} из 5. Всего верных ответов: ${score}`}
+          >
             <Icon name="check" size={16} />
-            <span className={styles.scoreValue}>{series}</span>
-            <span className={styles.scoreLabel}>из 5 по расписанию</span>
+            <span className={styles.scoreValue}>{series}/5</span>
+            <span className={styles.scoreLabel}>по расписанию</span>
           </span>
 
           <div className={styles.actions}>

@@ -6,7 +6,7 @@ import settingsReducer from '../settings/settingsSlice';
 import statsReducer from '../stats/statsSlice';
 import uiReducer from '../ui/toastSlice';
 import learnReducer, { answerChanged, learnStarted } from './learnSlice';
-import { checkAnswer, revealAnswer, skipCard, startLearn } from './learnThunks';
+import { checkAnswer, nextCard, revealAnswer, skipCard, startLearn } from './learnThunks';
 
 const CARDS = [
   { id: 'a', englishWord: 'lion', russianWord: 'лев', linkImg: '', count: 0 },
@@ -82,20 +82,27 @@ describe('startLearn', () => {
 });
 
 describe('checkAnswer', () => {
-  it('при неверном ответе переходит на следующую карточку', () => {
+  it('при неверном ответе показывает вердикт и ждёт «Далее»', () => {
     const store = makeStore();
     store.dispatch(startLearn());
     const before = store.getState().learn.currentCardId;
 
     answer(store, 'точно неверно');
 
-    expect(store.getState().learn.currentCardId).not.toBe(before);
+    // карточка остаётся, чтобы показать вердикт с правильным ответом
+    expect(store.getState().learn.currentCardId).toBe(before);
+    expect(store.getState().learn.verdict?.correct).toBe(false);
+    expect(store.getState().learn.verdict?.answer).toBeTruthy();
     expect(store.getState().cards.items[0].count).toBe(0);
-    expect(store.getState().ui.toast.type).toBe('error');
     expect(store.getState().learn.session.wrong).toBe(1);
+
+    // по «Далее» уходим на следующую карточку
+    store.dispatch(nextCard());
+    expect(store.getState().learn.currentCardId).not.toBe(before);
+    expect(store.getState().learn.verdict).toBeNull();
   });
 
-  it('при верном ответе увеличивает счётчик и меняет карточку', () => {
+  it('при верном ответе увеличивает счётчик и показывает вердикт', () => {
     const store = makeStore();
     store.dispatch(startLearn());
     const before = store.getState().learn.currentCardId;
@@ -107,8 +114,12 @@ describe('checkAnswer', () => {
       .getState()
       .cards.items.find((item) => item.id === card.id);
     expect(answered.count).toBe(1);
-    expect(store.getState().learn.currentCardId).not.toBe(before);
+    expect(store.getState().learn.verdict?.correct).toBe(true);
     expect(store.getState().learn.session.correct).toBe(1);
+
+    // по «Далее» переходим к следующей карточке
+    store.dispatch(nextCard());
+    expect(store.getState().learn.currentCardId).not.toBe(before);
   });
 
   it('принимает вариант ответа из карточки', () => {
@@ -175,12 +186,13 @@ describe('checkAnswer', () => {
     expect(store.getState().learn.session.learned).toBe(1);
   });
 
-  it('неправильный ответ уводит на следующую карточку', () => {
+  it('после «Далее» отвеченная карточка уходит из сессии', () => {
     const store = makeStore();
     store.dispatch(startLearn());
     const card = currentCardOf(store);
 
     answer(store, 'точно неправильный ответ');
+    store.dispatch(nextCard());
 
     const next = currentCardOf(store);
     expect(next).not.toBeNull();

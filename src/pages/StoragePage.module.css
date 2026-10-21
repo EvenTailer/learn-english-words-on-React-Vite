@@ -113,7 +113,8 @@
 
 @media (max-width: 560px) {
   .grid {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr) — иначе колонка шире контейнера и карточка обрезается */
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .chips {

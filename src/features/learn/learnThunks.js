@@ -9,6 +9,8 @@ import { cardCountIncremented } from '../words/wordsSlice';
 import {
   answerChanged,
   answerRevealed,
+  verdictCleared,
+  verdictSet,
   learnFinished,
   learnStarted,
   sessionReset,
@@ -97,7 +99,7 @@ export const startLearn = (plan) => (dispatch, getState) => {
 
 export const checkAnswer = () => (dispatch, getState) => {
   const state = getState();
-  const { currentCardId, mode, answer, queue } = state.learn;
+  const { currentCardId, mode, answer } = state.learn;
   const items = selectCards(state);
   const card = items.find((item) => item.id === currentCardId);
   if (!card) return;
@@ -110,7 +112,7 @@ export const checkAnswer = () => (dispatch, getState) => {
   const correct = correctAnswerOf(card, mode);
   dispatch(sessionStatAdded({ kind: 'answered' }));
 
-  // Ошиблись — карточка тоже уходит из сессии, но вернётся сегодня же
+  // Ошиблись — карточка остаётся на экране, чтобы показать вердикт
   if (!isAnswerMatch(answer, correct)) {
     dispatch(
       wordAnswered({
@@ -123,12 +125,12 @@ export const checkAnswer = () => (dispatch, getState) => {
     updateStreak(dispatch, getState);
     dispatch(sessionStatAdded({ kind: 'wrong' }));
     dispatch(
-      toastShown({
-        message: `Неверно. Правильный ответ: ${correct}`,
-        type: 'error',
+      verdictSet({
+        correct: false,
+        answer: correct,
+        mastered: false,
       })
     );
-    moveToNextCard(dispatch, getState, card.id, queue);
     return;
   }
 
@@ -140,32 +142,43 @@ export const checkAnswer = () => (dispatch, getState) => {
       count: (card.count ?? 0) + 1,
     })
   );
+
+  const mastered = isMasteredWord(getState(), card);
   dispatch(
     statsIncremented({
       date: toISODate(),
       correct: 1,
-      learned: isMasteredWord(getState(), card) ? 1 : 0,
+      learned: mastered ? 1 : 0,
     })
   );
   updateStreak(dispatch, getState);
   dispatch(sessionStatAdded({ kind: 'correct' }));
 
-  if (isMasteredWord(getState(), card)) {
+  if (mastered) {
     dispatch(cardCountIncremented(card.id));
     dispatch(sessionStatAdded({ kind: 'learned' }));
-    dispatch(
-      toastShown({
-        message: 'Правильно! Слово выучено 🎉',
-        type: 'success',
-      })
-    );
   } else {
     dispatch(cardCountIncremented(card.id));
-    dispatch(toastShown({ message: 'Правильно!', type: 'success' }));
   }
 
-  // Отвеченная карточка покидает сессию: 5 верных ответов = 5 разных сессий
-  moveToNextCard(dispatch, getState, card.id, queue);
+  // Вердикт на карточке: пользователь видит результат до перехода дальше
+  dispatch(
+    verdictSet({
+      correct: true,
+      answer: correct,
+      mastered,
+    })
+  );
+};
+
+// Переход к следующей карточке после показанного вердикта
+export const nextCard = () => (dispatch, getState) => {
+  const state = getState();
+  const { currentCardId, queue } = state.learn;
+  if (!currentCardId) return;
+
+  dispatch(verdictCleared());
+  moveToNextCard(dispatch, getState, currentCardId, queue);
 };
 
 // Слово освоено, когда верно ответили 5 раз подряд в разных сессиях

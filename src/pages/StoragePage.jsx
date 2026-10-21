@@ -8,6 +8,7 @@ import { filterCards, sortCards } from '../features/words/filtering';
 import { selectCards } from '../features/words/selectors';
 import { cardDeleted } from '../features/words/wordsSlice';
 import { speak } from '../shared/lib/speech';
+import { words } from '../shared/lib/plural';
 import Button from '../shared/ui/Button';
 import Chip from '../shared/ui/Chip';
 import ConfirmDialog from '../shared/ui/ConfirmDialog';
@@ -123,7 +124,9 @@ export default function StoragePage() {
             <span className={styles.counterValue}>{visible.length}</span> из{' '}
             {sorted.length}
           </p>
-          <p className={styles.total}>Всего в словаре: {cards.length} слов</p>
+          <p className={styles.total}>
+            Всего в словаре: {cards.length} {words(cards.length)}
+          </p>
         </div>
 
         <Button

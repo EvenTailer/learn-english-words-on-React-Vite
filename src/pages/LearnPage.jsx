@@ -5,6 +5,7 @@ import { answerChanged, planCleared } from '../features/learn/learnSlice';
 import {
   checkAnswer,
   chooseAnswer,
+  nextCard,
   revealAnswer,
   skipCard,
   startLearn,
@@ -48,6 +49,7 @@ export default function LearnPage() {
   const plan = useAppSelector((state) => state.learn.plan);
   const answerMode = useAppSelector((state) => state.learn.answerMode);
   const choices = useAppSelector((state) => state.learn.choices);
+  const verdict = useAppSelector((state) => state.learn.verdict);
 
   const inputRef = useRef(null);
   const [lastResult, setLastResult] = useState(null);
@@ -112,9 +114,13 @@ export default function LearnPage() {
   }, [answer, currentCard, dispatch, mode]);
 
   const handlePrimary = useCallback(() => {
-    if (revealed) dispatch(skipCard());
-    else handleCheck();
-  }, [dispatch, handleCheck, revealed]);
+    // Показали вердикт или открыли ответ — идём к следующей карточке
+    if (revealed || verdict) {
+      dispatch(nextCard());
+      return;
+    }
+    handleCheck();
+  }, [dispatch, handleCheck, revealed, verdict]);
 
   // Клавиатура: Enter — проверить, Esc — выйти на главную
   useEffect(() => {
@@ -242,6 +248,7 @@ export default function LearnPage() {
           answerMode={answerMode}
           choices={choices}
           revealed={revealed}
+          verdict={verdict}
           answer={answer}
           lastResult={lastResult}
           inputRef={inputRef}

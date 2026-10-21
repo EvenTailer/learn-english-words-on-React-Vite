@@ -7,6 +7,7 @@ import { WORD_SETS } from '../features/wordlists/sets';
 import { selectCards } from '../features/words/selectors';
 import { cardsImported } from '../features/words/wordsSlice';
 import { createId } from '../shared/lib/id';
+import { words } from '../shared/lib/plural';
 import Button from '../shared/ui/Button';
 import Card from '../shared/ui/Card';
 import Chip from '../shared/ui/Chip';
@@ -96,7 +97,9 @@ export default function WordListsPage() {
           <p className={styles.subtitle}>
             Готовые подборки и ваши собственные наборы
           </p>
-          <p className={styles.total}>В словаре сейчас: {cards.length} слов</p>
+          <p className={styles.total}>
+            В словаре сейчас: {cards.length} {words(cards.length)}
+          </p>
         </div>
         <Button
           variant="primary"

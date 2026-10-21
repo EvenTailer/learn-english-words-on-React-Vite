@@ -1,11 +1,13 @@
-/* ===== ТОСТ-УВЕДОМЛЕНИЯ ===== */
+/* ===== Всплывающее уведомление ===== */
+
 .toast-wrap {
   position: fixed;
-  left: 50%;
+  left: var(--space-4);
+  right: var(--space-4);
   bottom: var(--space-8);
-  transform: translateX(-50%);
+  margin-inline: auto;
   z-index: var(--z-toast);
-  /* тост не должен перехватывать клики по тому, что под ним */
+  /* Перехватывать клики нельзя: тост не должен мешать нажимать кнопки */
   pointer-events: none;
   max-width: min(92vw, 34rem);
 }
@@ -21,13 +23,14 @@
   border: 1px solid var(--border-default);
   box-shadow: var(--shadow-3);
   color: var(--text-1);
-  font-size: var(--fs-14);
+  font-size: var(--text-label);
   font-weight: var(--fw-semibold);
   animation: toast-in var(--dur-slow) var(--ease-out);
 }
 
 .message {
   flex: 1;
+  min-width: 0;
 }
 
 .close {
@@ -87,6 +90,7 @@
 
 @media (max-width: 767px) {
   .toast-wrap {
+    /* над нижним таб-баром */
     bottom: calc(var(--bottom-nav-height, 68px) + var(--space-3));
   }
 }

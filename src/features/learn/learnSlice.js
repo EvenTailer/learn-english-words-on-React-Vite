@@ -11,6 +11,7 @@ const initialState = {
   plan: null, // план тренировки: источник слов, формат, размер
   answerMode: ANSWER_MODES.TEXT,
   choices: [], // варианты ответа для режима «выбор»
+  verdict: null, // результат последнего ответа: { correct, answer, mastered }
   session: { total: 0, answered: 0, correct: 0, wrong: 0, skipped: 0, learned: 0 },
 };
 
@@ -34,6 +35,13 @@ const learnSlice = createSlice({
     },
     answerRevealed(state) {
       state.revealed = true;
+    },
+    // Вердикт по последнему ответу: показываем на карточке, потом «Далее»
+    verdictSet(state, action) {
+      state.verdict = action.payload;
+    },
+    verdictCleared(state) {
+      state.verdict = null;
     },
     choicesSet(state, action) {
       state.choices = action.payload ?? [];
@@ -79,6 +87,8 @@ export const {
   learnStarted,
   answerChanged,
   answerRevealed,
+  verdictSet,
+  verdictCleared,
   choicesSet,
   planCleared,
   sessionReset,

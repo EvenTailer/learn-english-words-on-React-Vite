@@ -52,7 +52,7 @@ export default function WordListCard({
           </Button>
         ) : (
           <Button
-            variant="primary"
+            variant="secondary"
             disabled={disabled || total === 0}
             onClick={onImport}
             fullWidth

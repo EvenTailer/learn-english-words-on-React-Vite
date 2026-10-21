@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
 import { selectProgressMap } from '../features/progress/selectors';
 import { selectStreak, selectTodayStats } from '../features/stats/selectors';
+import { words } from '../shared/lib/plural';
 import { directionSet } from '../features/settings/settingsSlice';
 import { selectCards, selectCardsCount } from '../features/words/selectors';
 import Button from '../shared/ui/Button';
@@ -15,13 +16,7 @@ import WordFlow from '../widgets/WordFlow/WordFlow';
 import styles from './HomePage.module.css';
 
 // Русские склонения: 1 слово / 2-4 слова / 5+ слов
-const pluralWords = (count) => {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) return 'слово';
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'слова';
-  return 'слов';
-};
+const pluralWords = (count) => words(count);
 
 const DIRECTION_OPTIONS = [
   { value: 'mixed', label: 'Смешанное' },
