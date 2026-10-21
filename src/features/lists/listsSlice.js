@@ -26,11 +26,13 @@ const listsSlice = createSlice({
       reducer(state, action) {
         state.items.unshift(action.payload);
       },
-      prepare(name) {
+      prepare(payload) {
+        const data = typeof payload === 'string' ? { name: payload } : (payload ?? {});
         return {
           payload: {
             id: createId(),
-            name: String(name ?? '').trim() || 'Новый список',
+            name: String(data.name ?? '').trim() || 'Новый набор',
+            description: String(data.description ?? '').trim(),
             words: [],
             createdAt: Date.now(),
           },

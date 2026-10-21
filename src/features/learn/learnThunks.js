@@ -22,7 +22,7 @@ import {
   buildPlanQueue,
   pickMode,
 } from './plan';
-import { advanceQueue, pickFromQueue } from './session';
+import { pickFromQueue } from './session';
 
 const correctAnswerOf = (card, mode) =>
   mode === 'eng' ? card.russianWord : card.englishWord;
@@ -97,7 +97,7 @@ export const startLearn = (plan) => (dispatch, getState) => {
 
 export const checkAnswer = () => (dispatch, getState) => {
   const state = getState();
-  const { currentCardId, mode, answer, queue, plan } = state.learn;
+  const { currentCardId, mode, answer, queue } = state.learn;
   const items = selectCards(state);
   const card = items.find((item) => item.id === currentCardId);
   if (!card) return;
@@ -110,7 +110,7 @@ export const checkAnswer = () => (dispatch, getState) => {
   const correct = correctAnswerOf(card, mode);
   dispatch(sessionStatAdded({ kind: 'answered' }));
 
-  // Ошиблись — остаёмся на той же карточке, чтобы не терять прогресс
+  // Ошиблись — карточка тоже уходит из сессии, но вернётся сегодня же
   if (!isAnswerMatch(answer, correct)) {
     dispatch(
       wordAnswered({
@@ -128,11 +128,9 @@ export const checkAnswer = () => (dispatch, getState) => {
         type: 'error',
       })
     );
-    finishIfDone(dispatch, getState);
+    moveToNextCard(dispatch, getState, card.id, queue);
     return;
   }
-
-  const isMastered = (card.count ?? 0) >= MASTERY_THRESHOLD - 1;
 
   dispatch(
     wordAnswered({
@@ -146,13 +144,13 @@ export const checkAnswer = () => (dispatch, getState) => {
     statsIncremented({
       date: toISODate(),
       correct: 1,
-      learned: isMastered ? 1 : 0,
+      learned: isMasteredWord(getState(), card) ? 1 : 0,
     })
   );
   updateStreak(dispatch, getState);
   dispatch(sessionStatAdded({ kind: 'correct' }));
 
-  if (isMastered) {
+  if (isMasteredWord(getState(), card)) {
     dispatch(cardCountIncremented(card.id));
     dispatch(sessionStatAdded({ kind: 'learned' }));
     dispatch(
@@ -166,10 +164,20 @@ export const checkAnswer = () => (dispatch, getState) => {
     dispatch(toastShown({ message: 'Правильно!', type: 'success' }));
   }
 
-  // Верный ответ убирает карточку из текущей сессии, ошибка — возвращает в конец
-  const nextQueue = isMastered
-    ? queue.filter((id) => id !== card.id)
-    : advanceQueue(queue, card.id);
+  // Отвеченная карточка покидает сессию: 5 верных ответов = 5 разных сессий
+  moveToNextCard(dispatch, getState, card.id, queue);
+};
+
+// Слово освоено, когда верно ответили 5 раз подряд в разных сессиях
+const isMasteredWord = (state, card) => {
+  const key = String(card.englishWord ?? '').trim().toLowerCase();
+  const entry = state.progress.words[key];
+  return (entry?.streak ?? 0) >= MASTERY_THRESHOLD;
+};
+
+// Переход к следующей карточке: отвеченная удаляется из очереди
+const moveToNextCard = (dispatch, getState, cardId, queue) => {
+  const nextQueue = queue.filter((id) => id !== cardId);
   const available = new Set(
     selectCards(getState())
       .filter((item) => {
@@ -190,34 +198,21 @@ export const checkAnswer = () => (dispatch, getState) => {
   startCard(dispatch, getState, {
     id: nextId,
     queue: nextQueue,
-    plan: plan ?? DEFAULT_PLAN,
+    plan: getState().learn.plan ?? DEFAULT_PLAN,
   });
   finishIfDone(dispatch, getState);
 };
 
 export const skipCard = () => (dispatch, getState) => {
   const state = getState();
-  const { currentCardId, queue, plan } = state.learn;
-  const items = selectCards(state);
+  const { currentCardId, queue } = state.learn;
   if (!currentCardId) return;
 
   dispatch(sessionStatAdded({ kind: 'answered' }));
   dispatch(sessionStatAdded({ kind: 'skipped' }));
 
-  const nextQueue = advanceQueue(queue, currentCardId);
-  const available = new Set(items.map((item) => item.id));
-  const nextId = pickFromQueue(nextQueue, available);
-  if (!nextId) {
-    dispatch(learnFinished());
-    return;
-  }
-
-  startCard(dispatch, getState, {
-    id: nextId,
-    queue: nextQueue,
-    plan: plan ?? DEFAULT_PLAN,
-  });
-  finishIfDone(dispatch, getState);
+  // Пропущенная карточка тоже покидает сессию
+  moveToNextCard(dispatch, getState, currentCardId, queue);
 };
 
 export const revealAnswer = () => (dispatch, getState) => {

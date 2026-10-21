@@ -1,12 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks';
 import { selectLists } from '../../features/lists/selectors';
-import {
-  listCreated,
-  listDeleted,
-  listRenamed,
-  wordRemovedFromList,
-} from '../../features/lists/listsSlice';
+import { listDeleted, listRenamed, wordRemovedFromList } from '../../features/lists/listsSlice';
 import { wordsAdded } from '../../features/progress/progressSlice';
 import { toastShown } from '../../features/ui/toastSlice';
 import { selectCards } from '../../features/words/selectors';
@@ -19,21 +14,19 @@ import EmptyState from '../../shared/ui/EmptyState';
 import Icon from '../../shared/ui/Icon';
 import IconButton from '../../shared/ui/IconButton';
 import Input from '../../shared/ui/Input';
-import Modal from '../../shared/ui/Modal';
+import SetCreateModal from '../SetCreateModal/SetCreateModal';
 import styles from './MyLists.module.css';
 
 /**
- * Свои списки слов: пользователь собирает тематические наборы вручную.
- * Слова списка можно залить в словарь одной кнопкой — тогда их можно учить.
+ * Свои наборы слов: пользователь собирает тематические наборы вручную.
+ * Слова набора можно залить в словарь одной кнопкой — тогда их можно учить.
  */
-export default function MyLists() {
+export default function MyLists({ onCreate }) {
   const dispatch = useAppDispatch();
 
   const lists = useAppSelector(selectLists);
   const cards = useAppSelector(selectCards);
 
-  const [isCreating, setIsCreating] = useState(false);
-  const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
@@ -55,12 +48,7 @@ export default function MyLists() {
   }, [cards]);
 
   const handleCreate = () => {
-    const name = newName.trim();
-    if (!name) return;
-    dispatch(listCreated(name));
-    dispatch(toastShown({ message: `Список «${name}» создан`, type: 'success' }));
-    setNewName('');
-    setIsCreating(false);
+    if (onCreate) onCreate();
   };
 
   const handleRename = (id) => {
@@ -119,7 +107,7 @@ export default function MyLists() {
         <Button
           variant="primary"
           icon={<Icon name="plus" size={20} />}
-          onClick={() => setIsCreating(true)}
+          onClick={handleCreate}
         >
           Новый список
         </Button>
@@ -134,7 +122,7 @@ export default function MyLists() {
             <Button
               variant="primary"
               icon={<Icon name="plus" size={20} />}
-              onClick={() => setIsCreating(true)}
+              onClick={handleCreate}
             >
               Создать список
             </Button>
@@ -236,30 +224,6 @@ export default function MyLists() {
           ))}
         </div>
       )}
-
-      <Modal
-        open={isCreating}
-        title="Новый список"
-        onClose={() => setIsCreating(false)}
-        footer={
-          <div className={styles.modalActions}>
-            <Button variant="primary" onClick={handleCreate}>
-              Создать
-            </Button>
-            <Button variant="ghost" onClick={() => setIsCreating(false)}>
-              Отмена
-            </Button>
-          </div>
-        }
-      >
-        <Input
-          label="Название списка"
-          value={newName}
-          onChange={setNewName}
-          placeholder="Например: Еда, Путешествия, Работа"
-          autoComplete="off"
-        />
-      </Modal>
 
       <ConfirmDialog
         open={Boolean(pendingList)}

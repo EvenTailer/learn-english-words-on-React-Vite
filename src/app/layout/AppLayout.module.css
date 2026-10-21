@@ -10,9 +10,18 @@
   padding-bottom: var(--space-10);
 }
 
+/* Режим фокуса: во время тренировки навигации нет */
+.focus .main {
+  padding-bottom: var(--space-6);
+}
+
 @media (max-width: 767px) {
   .main {
-    /* место под нижнюю навигацию */
+    /* не перекрывается нижним таб-баром */
     padding-bottom: calc(var(--bottom-nav-height, 68px) + var(--space-8));
+  }
+
+  .focus .main {
+    padding-bottom: var(--space-4);
   }
 }

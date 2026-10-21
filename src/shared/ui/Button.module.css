@@ -9,11 +9,13 @@
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: var(--fw-semibold);
   line-height: 1;
   text-align: center;
   white-space: nowrap;
+  /* иначе содержимое вылезает из трека грида и наезжает на соседнюю кнопку */
+  min-width: 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background-color var(--dur-fast) var(--ease-standard),
@@ -31,9 +33,13 @@
   transform: scale(0.98);
 }
 
+/* Disabled: отдельные токены — текст должен оставаться читаемым (AA) */
 .button:disabled {
-  opacity: var(--opacity-disabled);
+  background: var(--control-disabled-bg);
+  border-color: var(--control-disabled-border);
+  color: var(--control-disabled-fg);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Размеры: sm 44px, md 48px, lg 56px */

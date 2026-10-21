@@ -7,7 +7,7 @@ import styles from './SessionSummary.module.css';
 /**
  * Итоги учебной сессии: счётчики и действия.
  */
-export default function SessionSummary({ session, onRestart, onHome }) {
+export default function SessionSummary({ session, onRestart, onHome, onChangePlan }) {
   const stats = session ?? {};
   const answered = stats.answered ?? 0;
   const total = stats.total ?? 0;
@@ -60,6 +60,16 @@ export default function SessionSummary({ session, onRestart, onHome }) {
         >
           Ещё раз
         </Button>
+        {onChangePlan ? (
+          <Button
+            variant="secondary"
+            fullWidth
+            icon={<Icon name="list" size={20} />}
+            onClick={onChangePlan}
+          >
+            Другой набор слов
+          </Button>
+        ) : null}
         <Button
           variant="secondary"
           fullWidth

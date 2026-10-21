@@ -16,6 +16,13 @@
   margin: 0 auto;
 }
 
+/* Прогресс сессии выравнивается по карточке, а не по всей странице */
+.progressRow {
+  width: 100%;
+  max-width: var(--layout-learn);
+  margin: 0 auto;
+}
+
 .emptyActions {
   display: flex;
   flex-wrap: wrap;

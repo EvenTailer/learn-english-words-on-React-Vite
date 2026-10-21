@@ -1,5 +1,5 @@
 ﻿import { configureStore } from '@reduxjs/toolkit';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import cardsReducer from '../words/wordsSlice';
 import progressReducer, { wordAnswered } from '../progress/progressSlice';
 import settingsReducer from '../settings/settingsSlice';
@@ -82,14 +82,14 @@ describe('startLearn', () => {
 });
 
 describe('checkAnswer', () => {
-  it('при неверном ответе остаётся на той же карточке', () => {
+  it('при неверном ответе переходит на следующую карточку', () => {
     const store = makeStore();
     store.dispatch(startLearn());
     const before = store.getState().learn.currentCardId;
 
     answer(store, 'точно неверно');
 
-    expect(store.getState().learn.currentCardId).toBe(before);
+    expect(store.getState().learn.currentCardId).not.toBe(before);
     expect(store.getState().cards.items[0].count).toBe(0);
     expect(store.getState().ui.toast.type).toBe('error');
     expect(store.getState().learn.session.wrong).toBe(1);
@@ -138,7 +138,7 @@ describe('checkAnswer', () => {
     expect(store.getState().cards.items[0].count).toBe(0);
   });
 
-  it('на пятом правильном ответе помечает слово изученным, но не удаляет его', () => {
+  it('слово считается изученным только после пяти верных сессий', () => {
     const store = makeStore([
       {
         id: 'a',
@@ -147,14 +147,20 @@ describe('checkAnswer', () => {
         linkImg: '',
         count: 4,
       },
-      {
-        id: 'b',
-        englishWord: 'monkey',
-        russianWord: 'обезьяна',
-        linkImg: '',
-        count: 4,
-      },
     ]);
+
+    // четыре предыдущие сессии были верными — каждая в свой день
+    for (let i = 0; i < 4; i += 1) {
+      store.dispatch(
+        wordAnswered({
+          englishWord: 'lion',
+          russianWord: 'лев',
+          correct: true,
+        })
+      );
+      vi.setSystemTime(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+    }
+
     store.dispatch(startLearn());
     const card = currentCardOf(store);
 
@@ -165,8 +171,21 @@ describe('checkAnswer', () => {
 
     const progress = store.getState().progress.words[card.englishWord];
     expect(progress.status).toBe('mastered');
-    expect(progress.correct).toBe(5);
+    expect(progress.streak).toBe(5);
     expect(store.getState().learn.session.learned).toBe(1);
+  });
+
+  it('неправильный ответ уводит на следующую карточку', () => {
+    const store = makeStore();
+    store.dispatch(startLearn());
+    const card = currentCardOf(store);
+
+    answer(store, 'точно неправильный ответ');
+
+    const next = currentCardOf(store);
+    expect(next).not.toBeNull();
+    expect(next.id).not.toBe(card.id);
+    expect(store.getState().learn.queue).not.toContain(card.id);
   });
 
   it('выученное слово не попадает в новую сессию', () => {
@@ -178,15 +197,17 @@ describe('checkAnswer', () => {
     store.dispatch(startLearn());
     const card = currentCardOf(store);
 
-    // помечаем слово изученным
-    store.dispatch(
-      wordAnswered({
-        englishWord: card.englishWord,
-        russianWord: card.russianWord,
-        correct: true,
-        count: 5,
-      })
-    );
+    // помечаем слово изученным: пять верных сессий в разные дни
+    for (let i = 0; i < 5; i += 1) {
+      store.dispatch(
+        wordAnswered({
+          englishWord: card.englishWord,
+          russianWord: card.russianWord,
+          correct: true,
+        })
+      );
+      vi.setSystemTime(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+    }
 
     store.dispatch(startLearn());
     expect(store.getState().learn.queue).not.toContain(card.id);

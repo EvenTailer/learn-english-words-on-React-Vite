@@ -72,6 +72,16 @@ export default function LearnPage() {
     return () => clearTimeout(timer);
   }, [lastResult]);
 
+  // Уходя со страницы, закрываем план: в следующий раз «Учить» снова спросит,
+  // что именно учить, а не продолжит прошлую сессию с того же места.
+  // Ответы уже записаны в прогресс — ничто не теряется.
+  useEffect(
+    () => () => {
+      dispatch(planCleared());
+    },
+    [dispatch]
+  );
+
   // Фокус на поле ответа при смене карточки
   useEffect(() => {
     if (currentCard) inputRef.current?.focus();
@@ -104,7 +114,7 @@ export default function LearnPage() {
     else handleCheck();
   }, [dispatch, handleCheck, revealed]);
 
-  // Клавиатура: Enter — проверить, Esc — выход на главную
+  // Клавиатура: Enter — проверить, Esc — выйти на главную
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
@@ -179,13 +189,15 @@ export default function LearnPage() {
   return (
     <div className={styles.page}>
       {total > 0 ? (
-        <ProgressBar
-          value={answered}
-          max={total}
-          label="Прогресс сессии"
-          showValue
-          tone="accent"
-        />
+        <div className={styles.progressRow}>
+          <ProgressBar
+            value={answered}
+            max={total}
+            label="Прогресс сессии"
+            showValue
+            tone="accent"
+          />
+        </div>
       ) : null}
 
       {allMastered ? (
@@ -218,6 +230,7 @@ export default function LearnPage() {
         <SessionSummary
           session={session}
           onRestart={() => dispatch(startLearn(plan))}
+          onChangePlan={() => dispatch(planCleared())}
           onHome={() => navigate('/')}
         />
       ) : currentCard ? (

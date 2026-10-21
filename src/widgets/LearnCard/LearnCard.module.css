@@ -1,24 +1,55 @@
 /* ===== КАРТОЧКА УЧЕБНОГО СЛОВА ===== */
 
+/*
+  Иерархия внимания (по спецификации дизайнера):
+  1 — слово (вопрос), 2 — поле ответа, 3 — «Проверить»,
+  ниже — картинка, потом второстепенные действия.
+  Ровно одна залитая акцентом кнопка на экране: «Проверить».
+*/
+
 .shell {
   width: 100%;
-  max-width: 560px;
+  max-width: var(--layout-learn);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--gap-inline);
+  padding: var(--space-6);
 }
 
-/* Подсветка результата ответа — рамка и подложка */
+/* Порядок слоёв — разметка не меняется */
+.top {
+  order: 1;
+}
+
+.wordBlock {
+  order: 2;
+}
+
+.media {
+  order: 3;
+}
+
+.form {
+  order: 4;
+}
+
+.choices {
+  order: 4;
+}
+
+.actions {
+  order: 5;
+}
+
+/* Вердикт: рамка, а не перекраска всей карточки */
 .shell.correct {
   border-color: var(--success-border);
-  background: var(--success-soft);
 }
 
 .shell.wrong {
   border-color: var(--danger-border);
-  background: var(--danger-soft);
 }
 
 .top {
@@ -29,9 +60,36 @@
   width: 100%;
 }
 
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Текстовая кнопка «Выйти» — её видно сразу, без подсказки */
+.exitButton {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: var(--text-label);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.exitButton:hover {
+  border-color: var(--border-strong);
+  color: var(--text-1);
+}
+
+/* Картинка — поддержка, не герой */
 .media {
-  width: 220px;
-  height: 220px;
+  width: var(--media-learn);
+  height: var(--media-learn);
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -62,7 +120,7 @@
 
 .word {
   margin: 0;
-  font-size: var(--fs-40);
+  font-size: var(--text-h1);
   font-weight: var(--fw-bold);
   line-height: var(--lh-tight);
   letter-spacing: var(--ls-tight);
@@ -78,14 +136,14 @@
 
 .phonetic {
   font-family: var(--font-mono);
-  font-size: var(--fs-16);
+  font-size: var(--text-lead);
   line-height: var(--lh-relaxed);
   color: var(--text-3);
 }
 
 .reveal {
   margin: 0;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   line-height: var(--lh-normal);
   color: var(--text-2);
 }
@@ -129,7 +187,7 @@
   background: var(--surface-2);
   color: var(--text-1);
   font-family: inherit;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   text-align: center;
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
@@ -170,7 +228,7 @@
 
 .audioHint {
   margin: 0;
-  font-size: var(--fs-14);
+  font-size: var(--text-label);
   color: var(--text-3);
 }
 
@@ -178,7 +236,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--gap-inline);
+  gap: var(--gap-tight);
 }
 
 .secondary {
@@ -189,19 +247,41 @@
 
 .hint {
   margin: 0;
-  font-size: var(--fs-14);
+  font-size: var(--text-label);
   line-height: var(--lh-normal);
   color: var(--text-3);
   text-align: center;
 }
 
-@media (max-width: 480px) {
-  .media {
-    width: 160px;
-    height: 160px;
+/* На мобильном главное действие прилипает к низу — его всегда видно */
+@media (max-width: 767px) {
+  .shell {
+    padding: var(--space-4);
+    gap: var(--space-3);
   }
 
   .word {
-    font-size: var(--fs-32);
+    font-size: var(--text-h1-sm);
+  }
+
+  .media {
+    width: var(--media-learn-sm);
+    height: var(--media-learn-sm);
+  }
+
+  .actions {
+    position: sticky;
+    bottom: calc(var(--bottom-nav-height) + var(--space-2));
+    z-index: var(--z-sticky);
+    padding: var(--space-2) 0;
+    background: var(--surface-1);
+    border-radius: var(--radius-lg);
+  }
+}
+
+/* На узких экранах две второстепенные кнопки в ряд наезжают друг на друга */
+@media (max-width: 420px) {
+  .secondary {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -7,11 +7,13 @@ import { WORD_SETS } from '../features/wordlists/sets';
 import { selectCards } from '../features/words/selectors';
 import { cardsImported } from '../features/words/wordsSlice';
 import { createId } from '../shared/lib/id';
+import Button from '../shared/ui/Button';
 import Card from '../shared/ui/Card';
 import Chip from '../shared/ui/Chip';
 import Icon from '../shared/ui/Icon';
 import Skeleton from '../shared/ui/Skeleton';
 import MyLists from '../widgets/MyLists/MyLists';
+import SetCreateModal from '../widgets/SetCreateModal/SetCreateModal';
 import WordListCard from '../widgets/WordListCard/WordListCard';
 import styles from './WordListsPage.module.css';
 
@@ -19,7 +21,7 @@ const SKELETON_COUNT = 4;
 
 const TABS = [
   { value: 'sets', label: 'Готовые наборы' },
-  { value: 'lists', label: 'Мои списки' },
+  { value: 'lists', label: 'Мои наборы' },
 ];
 
 export default function WordListsPage() {
@@ -30,6 +32,7 @@ export default function WordListsPage() {
   const cards = useAppSelector(selectCards);
 
   const [tab, setTab] = useState('sets');
+  const [isCreatingSet, setIsCreatingSet] = useState(false);
 
   useEffect(() => {
     if (status === 'idle') dispatch(loadWordLists());
@@ -91,10 +94,17 @@ export default function WordListsPage() {
         <div className={styles.headings}>
           <h1 className={styles.title}>Наборы слов</h1>
           <p className={styles.subtitle}>
-            Готовые подборки и ваши собственные списки
+            Готовые подборки и ваши собственные наборы
           </p>
           <p className={styles.total}>В словаре сейчас: {cards.length} слов</p>
         </div>
+        <Button
+          variant="primary"
+          icon={<Icon name="plus" size={20} />}
+          onClick={() => setIsCreatingSet(true)}
+        >
+          Создать набор
+        </Button>
       </header>
 
       <div className={styles.tabs} role="group" aria-label="Раздел наборов">
@@ -109,7 +119,7 @@ export default function WordListsPage() {
       </div>
 
       {tab === 'lists' ? (
-        <MyLists />
+        <MyLists onCreate={() => setIsCreatingSet(true)} />
       ) : (
         <>
           {isLoading ? (
@@ -158,6 +168,12 @@ export default function WordListsPage() {
           </p>
         </>
       )}
+
+      <SetCreateModal
+        open={isCreatingSet}
+        onClose={() => setIsCreatingSet(false)}
+        onCreated={() => setTab('lists')}
+      />
     </div>
   );
 }

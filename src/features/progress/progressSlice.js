@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { nextDueAt } from './srs';
+import { isDue, nextDueAt } from './srs';
 
 // Порог, после которого слово считается изученным (5 верных ответов)
 export const MASTERY_THRESHOLD = 5;
@@ -75,16 +75,21 @@ const progressSlice = createSlice({
       if (correct) {
         // count — накопительный счётчик верных ответов по этой карточке
         existing.correct = Math.max(existing.correct, count ?? existing.correct + 1);
-        // streak — сколько верных ответов подряд: по нему считается интервал
-        existing.streak = (existing.streak ?? 0) + 1;
-        if (existing.correct >= MASTERY_THRESHOLD) {
+
+        // Серия растёт только если слово было просрочено: повтор в тот же
+        // день не засчитывается. Так 5 верных ответов = 5 разных дней
+        // с интервалами 1/3/7/21/60, а не 5 кликов подряд.
+        const dueNow = isDue(existing, Date.now());
+        if (dueNow) existing.streak = (existing.streak ?? 0) + 1;
+
+        if (existing.streak >= MASTERY_THRESHOLD) {
           existing.status = 'mastered';
           existing.masteredAt = Date.now();
         } else {
           existing.status = 'learning';
         }
         // слово «отдыхает» до следующего повторения
-        existing.dueAt = nextDueAt(existing.streak);
+        existing.dueAt = nextDueAt(Math.max(existing.streak, 1));
       } else {
         existing.wrong += 1;
         existing.status = 'learning';

@@ -67,12 +67,17 @@ export default function LearnCard({
       className={`${styles.shell} ${resultClass}`}
     >
       <div className={styles.top}>
-        <IconButton
-          icon={<Icon name="arrow-left" size={20} />}
-          label="Выйти"
-          variant="ghost"
-          onClick={onExit}
-        />
+        <div className={styles.topLeft}>
+          <IconButton
+            icon={<Icon name="arrow-left" size={20} />}
+            label="Выйти"
+            variant="ghost"
+            onClick={onExit}
+          />
+          <button type="button" className={styles.exitButton} onClick={onExit}>
+            Выйти
+          </button>
+        </div>
         <Badge variant={showEnglish ? 'accent' : 'success'}>
           {isAudio ? 'АУДИО' : showEnglish ? 'ENGLISH' : 'RUSSIAN'}
         </Badge>
@@ -204,7 +209,7 @@ export default function LearnCard({
 
         <div className={styles.secondary}>
           <Button
-            variant="secondary"
+            variant="ghost"
             icon={<Icon name="eye" size={20} />}
             onClick={onReveal}
             disabled={revealed}
@@ -212,7 +217,7 @@ export default function LearnCard({
             Показать ответ
           </Button>
           <Button
-            variant="secondary"
+            variant="ghost"
             icon={<Icon name="skip" size={20} />}
             onClick={onSkip}
           >
@@ -220,7 +225,7 @@ export default function LearnCard({
           </Button>
         </div>
 
-        <p className={styles.hint}>Enter — проверить, Esc — выйти</p>
+        <p className={styles.hint}>Enter — проверить</p>
       </div>
     </Card>
   );
