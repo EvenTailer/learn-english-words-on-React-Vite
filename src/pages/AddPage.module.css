@@ -311,3 +311,62 @@
     align-items: stretch;
   }
 }
+
+/* Чек «что сохранится» */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.checkRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.checkRow dt {
+  font-size: var(--text-label);
+  color: var(--text-3);
+}
+
+.checkRow dd {
+  margin: 0;
+  font-size: var(--text-label);
+  font-weight: var(--fw-medium);
+  color: var(--text-1);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* Другие переводы из словаря */
+.variants {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.variantsLabel {
+  font-size: var(--text-label);
+  color: var(--text-3);
+}
+
+.variantsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Метка «уже в словаре» у подсказок */
+.suggestionTag {
+  margin-left: auto;
+  font-size: var(--text-caption);
+  color: var(--text-3);
+  white-space: nowrap;
+}

@@ -47,6 +47,8 @@ export default function AddPage() {
   const [isCreatingSet, setIsCreatingSet] = useState(false);
   const [showImageBlock, setShowImageBlock] = useState(false);
   const [justAdded, setJustAdded] = useState('');
+  const [variants, setVariants] = useState([]);
+  const [existingCard, setExistingCard] = useState(null);
 
   const englishRef = useRef(null);
   const russianRef = useRef(null);
@@ -102,6 +104,7 @@ export default function AddPage() {
     setEnglishWord(value);
     if (englishError) setEnglishError('');
     if (lookupError) setLookupError('');
+    setExistingCard(null);
   };
 
   const handleRussianChange = (value) => {
@@ -109,9 +112,12 @@ export default function AddPage() {
     if (russianError) setRussianError('');
   };
 
+  // Слово из подсказок уже есть в словаре — его можно только в набор
   const handleSuggestion = (card) => {
     setEnglishWord(card.englishWord);
+    setRussianWord(card.russianWord);
     setEnglishError('');
+    setExistingCard(card);
     englishRef.current?.focus();
   };
 
@@ -135,8 +141,10 @@ export default function AddPage() {
         setDefinition(result.definition ?? '');
         setExample(result.example ?? '');
         setPartOfSpeech(result.partOfSpeech ?? '');
+        setVariants(result.variants ?? []);
         setLinkImg((prev) => (prev.trim() ? prev : result.imageUrl ?? ''));
         setImageSource(result.imageSource ?? '');
+        setExistingCard(null);
         if (!result.russianWord) {
           setLookupError('Слово найдено, но перевода нет — впишите его сами');
         }
@@ -187,6 +195,8 @@ export default function AddPage() {
     setRussianError('');
     setLookupError('');
     setListId('');
+    setVariants([]);
+    setExistingCard(null);
     setShowImageBlock(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -220,34 +230,42 @@ export default function AddPage() {
       }
     }
 
-    // Слово уже есть — не добавляем второй раз
-    const exists = cards.some(
-      (card) =>
-        String(card.englishWord ?? '').trim().toLowerCase() ===
-        english.toLowerCase()
-    );
-    if (exists) {
+    // Слово уже есть — тогда добавляем только в набор
+    const exists =
+      existingCard ??
+      cards.find(
+        (card) =>
+          String(card.englishWord ?? '').trim().toLowerCase() ===
+          english.toLowerCase()
+      );
+
+    if (exists && !listId) {
       dispatch(
-        toastShown({ message: 'Слово уже в словаре', type: 'info' })
+        toastShown({
+          message: 'Слово уже в словаре — выберите набор',
+          type: 'info',
+        })
       );
       setEnglishError('Это слово уже есть в словаре');
       return;
     }
 
-    dispatch(
-      cardAdded({
-        id: createId(),
-        englishWord: english,
-        russianWord: russian,
-        linkImg: image,
-        count: 0,
-        phonetic,
-        definition,
-        example,
-        imageSource,
-      })
-    );
-    dispatch(wordAdded({ englishWord: english, russianWord: russian }));
+    if (!exists) {
+      dispatch(
+        cardAdded({
+          id: createId(),
+          englishWord: english,
+          russianWord: russian,
+          linkImg: image,
+          count: 0,
+          phonetic,
+          definition,
+          example,
+          imageSource,
+        })
+      );
+      dispatch(wordAdded({ englishWord: english, russianWord: russian }));
+    }
 
     // Кладём слово в выбранный свой набор
     if (listId) {
@@ -267,7 +285,14 @@ export default function AddPage() {
       );
     }
 
-    dispatch(toastShown({ message: 'Слово добавлено', type: 'success' }));
+    dispatch(
+      toastShown({
+        message: exists
+          ? 'Слово добавлено в набор'
+          : 'Слово добавлено в словарь',
+        type: 'success',
+      })
+    );
     setJustAdded(english);
 
     resetForm();
@@ -275,6 +300,9 @@ export default function AddPage() {
   };
 
   const found = Boolean(phonetic || definition || imageSource);
+  // Главное действие одно: пока слово не найдено — поиск, потом — сохранение
+  const isReady = Boolean(russianWord.trim()) && !existingCard;
+  const needsSet = Boolean(existingCard) && Boolean(listId);
 
   return (
     <div className={styles.page}>
@@ -352,6 +380,7 @@ export default function AddPage() {
                       <span className={styles.suggestionRu}>
                         {card.russianWord}
                       </span>
+                      <span className={styles.suggestionTag}>уже в словаре</span>
                     </button>
                   </li>
                 ))}
@@ -359,7 +388,7 @@ export default function AddPage() {
             ) : null}
 
             <Button
-              variant="primary"
+              variant={found ? 'secondary' : 'primary'}
               type="button"
               fullWidth
               onClick={handleLookup}
@@ -448,6 +477,21 @@ export default function AddPage() {
               <p className={styles.stepHint}>
                 {found ? 'Подставлено из словаря — можно изменить' : 'Проверьте перевод'}
               </p>
+            ) : null}
+
+            {variants.length > 0 ? (
+              <div className={styles.variants}>
+                <span className={styles.variantsLabel}>Другие переводы</span>
+                <div className={styles.variantsChips}>
+                  {variants.map((variant) => (
+                    <Chip
+                      key={variant}
+                      label={variant}
+                      onClick={() => setRussianWord(variant)}
+                    />
+                  ))}
+                </div>
+              </div>
             ) : null}
           </Card>
 
@@ -540,13 +584,14 @@ export default function AddPage() {
 
           <div className={styles.actions}>
             <Button
-              variant="primary"
+              variant={isReady || needsSet ? 'primary' : 'secondary'}
               type="submit"
               size="lg"
               fullWidth
+              disabled={!isReady && !needsSet}
               icon={<Icon name="plus" size={20} />}
             >
-              Добавить в словарь
+              {existingCard ? 'Добавить в набор' : 'Добавить в словарь'}
             </Button>
             <Button variant="ghost" type="button" onClick={resetForm}>
               Очистить
@@ -554,20 +599,56 @@ export default function AddPage() {
           </div>
         </form>
 
-        <aside className={styles.preview} aria-label="Предпросмотр">
-          <h2 className={styles.previewTitle}>Так это будет выглядеть</h2>
-          <WordCard
-            variant="preview"
-            status="new"
-            card={{
-              englishWord: englishWord.trim() || 'sunflower',
-              russianWord: russianWord.trim() || 'подсолнух',
-              linkImg: previewUrl || linkImg.trim(),
-              phonetic,
-              definition,
-              imageSource,
-            }}
-          />
+        <aside className={styles.preview} aria-label="Что сохранится">
+          <h2 className={styles.previewTitle}>Что сохранится</h2>
+
+          <dl className={styles.checklist}>
+            <div className={styles.checkRow}>
+              <dt>Слово</dt>
+              <dd>{englishWord.trim() || '—'}</dd>
+            </div>
+            <div className={styles.checkRow}>
+              <dt>Перевод</dt>
+              <dd>{russianWord.trim() || '—'}</dd>
+            </div>
+            <div className={styles.checkRow}>
+              <dt>Набор</dt>
+              <dd>
+                {lists.find((list) => list.id === listId)?.name ?? 'не выбран'}
+              </dd>
+            </div>
+            <div className={styles.checkRow}>
+              <dt>Картинка</dt>
+              <dd>
+                {previewUrl || linkImg
+                  ? 'своя'
+                  : imageSource
+                    ? `из: ${imageSource}`
+                    : 'не будет'}
+              </dd>
+            </div>
+            {phonetic ? (
+              <div className={styles.checkRow}>
+                <dt>Произношение</dt>
+                <dd>{phonetic}</dd>
+              </div>
+            ) : null}
+          </dl>
+
+          {englishWord.trim() || russianWord.trim() ? (
+            <WordCard
+              variant="preview"
+              status="new"
+              card={{
+                englishWord: englishWord.trim() || '—',
+                russianWord: russianWord.trim() || '—',
+                linkImg: previewUrl || linkImg.trim(),
+                phonetic,
+                definition,
+                imageSource,
+              }}
+            />
+          ) : null}
         </aside>
       </div>
 
