@@ -10,6 +10,7 @@ const LearnPage = lazy(() => import('../pages/LearnPage'));
 const AddPage = lazy(() => import('../pages/AddPage'));
 const StoragePage = lazy(() => import('../pages/StoragePage'));
 const WordListsPage = lazy(() => import('../pages/WordListsPage'));
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
 const withSuspense = (element) => (
   <Suspense fallback={<Loader />}>{element}</Suspense>
@@ -29,6 +30,7 @@ export const router = createBrowserRouter(
         { path: 'add', element: withSuspense(<AddPage />) },
         { path: 'storage', element: withSuspense(<StoragePage />) },
         { path: 'wordlists', element: withSuspense(<WordListsPage />) },
+        { path: '*', element: withSuspense(<NotFoundPage />) },
       ],
     },
   ],
