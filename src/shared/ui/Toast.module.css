@@ -90,6 +90,11 @@
 }
 
 @media (max-width: 767px) {
+  .close {
+    width: var(--tap-min);
+    height: var(--tap-min);
+  }
+
   .toast-wrap {
     /* над нижним таб-баром (в режиме фокуса — внизу липкие кнопки) */
     bottom: var(

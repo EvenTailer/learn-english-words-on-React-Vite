@@ -11,8 +11,16 @@ export default function StatCard({
   tone = 'default',
   onClick,
   className,
+  compact = false,
 }) {
-  const classes = [styles.card, styles[tone], className].filter(Boolean).join(' ');
+  const classes = [
+    styles.card,
+    styles[tone],
+    compact ? styles.compact : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const content = (
     <>

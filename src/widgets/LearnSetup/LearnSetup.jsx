@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks';
 import { selectLists } from '../../features/lists/selectors';
 import { startLearn } from '../../features/learn/learnThunks';
@@ -32,6 +33,7 @@ const SIZE_OPTIONS = [
  */
 export default function LearnSetup() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const cards = useAppSelector(selectCards);
   const progressMap = useAppSelector(selectProgressMap);
@@ -185,13 +187,28 @@ export default function LearnSetup() {
         ) : null}
 
         {source === LEARN_SOURCES.SET ? (
-          <Select
-            label="Набор слов"
-            value={setKey}
-            options={setOptions}
-            onChange={setSetKey}
-            hint="Учим только слова этого набора"
-          />
+          <div className={styles.setBlock}>
+            <Select
+              label="Набор слов"
+              value={setKey}
+              options={setOptions}
+              onChange={setSetKey}
+              hint="Учим только слова этого набора"
+            />
+            {!importedSets.has(setKey) ? (
+              <p className={styles.setNote}>
+                Этот набор ещё не в словаре. Добавьте его на странице{' '}
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  onClick={() => navigate('/wordlists')}
+                >
+                  «Наборы»
+                </button>
+                , иначе учить будет нечего.
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </Card>
 
@@ -249,18 +266,20 @@ export default function LearnSetup() {
           <Icon name="cards" size={18} />
           {poolCount > 0
             ? `В тренировке ${poolCount} ${plural(poolCount)}`
-            : 'В этом источнике нет слов'}
+            : 'В этом источнике нет слов — возьмите готовый набор'}
         </p>
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          icon={<Icon name="learn" size={20} />}
-          disabled={poolCount === 0}
-          onClick={handleStart}
-        >
-          Начать тренировку
-        </Button>
+        <div className={styles.startWrap}>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<Icon name="learn" size={20} />}
+            disabled={poolCount === 0}
+            onClick={handleStart}
+          >
+            Начать тренировку
+          </Button>
+        </div>
       </div>
     </div>
   );

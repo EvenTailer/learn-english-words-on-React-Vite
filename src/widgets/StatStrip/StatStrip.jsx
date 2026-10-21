@@ -18,6 +18,7 @@ export default function StatStrip() {
   return (
     <div className={styles.strip}>
       <StatCard
+        compact
         className={styles.item}
         tone="success"
         icon={<Icon name="trophy" size={20} />}
@@ -25,12 +26,14 @@ export default function StatStrip() {
         label="Изучено"
       />
       <StatCard
+        compact
         className={styles.item}
         icon={<Icon name="cards" size={20} />}
         value={cardsCount}
         label="Всего слов"
       />
       <StatCard
+        compact
         className={styles.item}
         tone="warning"
         icon={<Icon name="flame" size={20} />}

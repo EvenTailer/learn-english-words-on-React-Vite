@@ -125,18 +125,18 @@ export default function LearnCard({
         <div className={styles.wordBlock}>
           <h2 className={styles.word}>{question}</h2>
 
-          {showEnglish && card.phonetic ? (
-            <div className={styles.meta}>
+          <div className={styles.meta}>
+            {showEnglish && card.phonetic ? (
               <span className={styles.phonetic}>{card.phonetic}</span>
-              <IconButton
-                icon={<Icon name="volume" size={18} />}
-                label="Произнести"
-                variant="ghost"
-                size="sm"
-                onClick={onSpeak}
-              />
-            </div>
-          ) : null}
+            ) : null}
+            <IconButton
+              icon={<Icon name="volume" size={18} />}
+              label="Произнести"
+              variant="ghost"
+              size="sm"
+              onClick={onSpeak}
+            />
+          </div>
 
           {revealed ? (
             <p className={styles.reveal}>
@@ -185,7 +185,11 @@ export default function LearnCard({
               value={answer}
               onChange={onAnswerChange}
               placeholder={
-                isAudio ? 'Введите слово на английском...' : 'Введите перевод...'
+                isAudio
+                  ? 'Введите слово на английском...'
+                  : showEnglish
+                    ? 'Введите перевод...'
+                    : 'Введите слово на английском...'
               }
               disabled={revealed || Boolean(verdict)}
               inputRef={inputRef}
@@ -214,6 +218,7 @@ export default function LearnCard({
           variant="primary"
           size="lg"
           fullWidth
+          className={styles.primaryAction}
           icon={
             verdict || revealed ? (
               <Icon name="arrow-right" size={20} />

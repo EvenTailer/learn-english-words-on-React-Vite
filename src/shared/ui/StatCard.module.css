@@ -72,3 +72,22 @@ button.card:hover {
 .danger .icon {
   color: var(--danger);
 }
+
+/* Компактная плитка: для полосы метрик — три цифры в ряд, а не стопка */
+.compact {
+  padding: var(--space-3);
+  gap: 0;
+}
+
+.compact .value {
+  font-size: var(--fs-20);
+}
+
+.compact .label {
+  font-size: var(--fs-12);
+  line-height: var(--lh-tight);
+}
+
+.compact .icon {
+  display: none;
+}

@@ -58,6 +58,15 @@
   gap: var(--space-3);
 }
 
+/* Кнопка «Начать» липнет к низу — её видно на любом экране */
+.startWrap {
+  position: sticky;
+  bottom: calc(var(--bottom-nav-height, 68px) + var(--space-2));
+  z-index: var(--z-sticky);
+  padding: var(--space-2) 0;
+  background: var(--surface-canvas);
+}
+
 .count {
   display: flex;
   align-items: center;
@@ -65,4 +74,23 @@
   margin: 0;
   font-size: var(--fs-14);
   color: var(--text-2);
+}
+
+/* Подсказка про неимпортированный набор */
+.setNote {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--lh-relaxed);
+  color: var(--text-2);
+}
+
+.linkButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+  cursor: pointer;
 }
