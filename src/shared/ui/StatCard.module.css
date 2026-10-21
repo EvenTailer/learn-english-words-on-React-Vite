@@ -84,7 +84,7 @@ button.card:hover {
 }
 
 .compact .label {
-  font-size: var(--fs-12);
+  font-size: var(--fs-14);
   line-height: var(--lh-tight);
 }
 

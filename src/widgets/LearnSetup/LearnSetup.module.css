@@ -4,6 +4,8 @@
   gap: var(--space-4);
   max-width: 720px;
   margin: 0 auto;
+  /* запас снизу под закреплённую кнопку «Начать тренировку» */
+  padding-bottom: calc(var(--control-h-lg) + var(--space-8));
 }
 
 .header {
@@ -58,13 +60,14 @@
   gap: var(--space-3);
 }
 
-/* Кнопка «Начать» липнет к низу — её видно на любом экране */
+/* Кнопка «Начать» закреплена у низа экрана: sticky не тянет —
+   родитель такой же низкий. Fixed держит кнопку на виду всегда. */
 .startWrap {
-  position: sticky;
+  position: fixed;
+  left: var(--page-gutter);
+  right: var(--page-gutter);
   bottom: calc(var(--bottom-nav-height, 68px) + var(--space-2));
   z-index: var(--z-sticky);
-  padding: var(--space-2) 0;
-  background: var(--surface-canvas);
 }
 
 .count {

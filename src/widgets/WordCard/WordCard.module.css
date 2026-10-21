@@ -178,3 +178,9 @@
     transform: none;
   }
 }
+
+/* Когда будет следующий повтор */
+.due {
+  font-size: var(--text-caption);
+  color: var(--text-3);
+}

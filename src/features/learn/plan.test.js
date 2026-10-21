@@ -35,9 +35,13 @@ describe('selectPool', () => {
     expect(pool.map((card) => card.id)).toEqual(['a', 'c']);
   });
 
-  it('в режиме «ошибки» берёт слова с ошибками', () => {
+  it('в режиме «ошибки» берёт слова, где ошиблись в последний раз', () => {
     const pool = selectPool(CARDS, {
-      progressMap,
+      progressMap: {
+        ...progressMap,
+        apple: { ...progressMap.apple, lastResult: 'wrong' },
+        cat: { ...progressMap.cat, lastResult: 'correct' },
+      },
       plan: { ...DEFAULT_PLAN, source: LEARN_SOURCES.ERRORS },
     });
     expect(pool.map((card) => card.id)).toEqual(['a']);

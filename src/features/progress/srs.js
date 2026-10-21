@@ -29,3 +29,12 @@ export const daysUntilDue = (entry, now = Date.now()) => {
   if (!entry?.dueAt) return 0;
   return Math.max(0, Math.ceil((entry.dueAt - now) / DAY_MS));
 };
+
+// Когда будет следующий повтор — по-русски, для интерфейса
+export const formatDue = (entry, now = Date.now()) => {
+  if (!entry?.dueAt) return 'ещё не учили';
+  const days = daysUntilDue(entry, now);
+  if (days <= 0) return 'пора повторить';
+  if (days === 1) return 'повтор завтра';
+  return `повтор через ${days} ${days < 5 ? 'дня' : 'дней'}`;
+};

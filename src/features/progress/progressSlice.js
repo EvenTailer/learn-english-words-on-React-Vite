@@ -76,11 +76,13 @@ const progressSlice = createSlice({
         // count — накопительный счётчик верных ответов по этой карточке
         existing.correct = Math.max(existing.correct, count ?? existing.correct + 1);
 
-        // Серия растёт только если слово было просрочено: повтор в тот же
-        // день не засчитывается. Так 5 верных ответов = 5 разных дней
-        // с интервалами 1/3/7/21/60, а не 5 кликов подряд.
+        // streak — сколько сессий подряд слово отвечали верно.
+        // Один ответ за сессию: карточка уходит из тренировки после ответа,
+        // поэтому 5 верных = 5 разных сессий с интервалами 1/3/7/21/60 дней.
         const dueNow = isDue(existing, Date.now());
-        if (dueNow) existing.streak = (existing.streak ?? 0) + 1;
+        if (dueNow) {
+          existing.streak = Math.min((existing.streak ?? 0) + 1, MASTERY_THRESHOLD);
+        }
 
         if (existing.streak >= MASTERY_THRESHOLD) {
           existing.status = 'mastered';
@@ -90,12 +92,16 @@ const progressSlice = createSlice({
         }
         // слово «отдыхает» до следующего повторения
         existing.dueAt = nextDueAt(Math.max(existing.streak, 1));
+        // верный ответ снимает слово из списка «Только ошибки»
+        existing.lastResult = 'correct';
       } else {
         existing.wrong += 1;
         existing.status = 'learning';
         existing.streak = 0;
         // ошибка — повторяем сегодня
         existing.dueAt = Date.now();
+        existing.lastResult = 'wrong';
+        existing.lastWrongAt = Date.now();
       }
 
       existing.lastSeenAt = Date.now();
@@ -104,6 +110,21 @@ const progressSlice = createSlice({
 
     wordRemoved(state, action) {
       delete state.words[action.payload.key];
+    },
+
+    // «Вернуть в работу»: слово снова становится новым
+    wordReset(state, action) {
+      const key = action.payload?.key ?? action.payload;
+      const entry = state.words[key];
+      if (!entry) return;
+      entry.status = 'new';
+      entry.correct = 0;
+      entry.wrong = 0;
+      entry.streak = 0;
+      entry.dueAt = null;
+      entry.lastResult = null;
+      entry.lastWrongAt = null;
+      entry.masteredAt = null;
     },
 
     progressReset(state) {
@@ -117,6 +138,7 @@ export const {
   wordsAdded,
   wordAnswered,
   wordRemoved,
+  wordReset,
   progressReset,
 } = progressSlice.actions;
 

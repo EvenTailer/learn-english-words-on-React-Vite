@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
 import { selectProgressMap } from '../features/progress/selectors';
-import { wordRemoved } from '../features/progress/progressSlice';
+import { wordRemoved, wordReset } from '../features/progress/progressSlice';
 import { toastShown } from '../features/ui/toastSlice';
+import { formatDue } from '../features/progress/srs';
 import { filterCards, sortCards } from '../features/words/filtering';
 import { selectCards } from '../features/words/selectors';
 import { cardDeleted } from '../features/words/wordsSlice';
@@ -147,7 +148,7 @@ export default function StoragePage() {
             value={query}
             onChange={handleQueryChange}
             label="Поиск"
-            placeholder="Поиск по английскому или русскому слову"
+            placeholder="Поиск по словам"
           />
           <Select
             label="Сортировка"
@@ -214,9 +215,25 @@ export default function StoragePage() {
                   status={progress?.status ?? 'new'}
                   correct={progress?.correct ?? card.count ?? 0}
                   streak={progress?.streak ?? 0}
+                  due={formatDue(progress)}
                   onSpeak={(word) => speak(word)}
                   onDelete={() => setPendingDeleteId(card.id)}
                   onAddToList={(target) => setListTargetId(target.id)}
+                  onReset={(target) => {
+                    dispatch(
+                      wordReset({
+                        key: String(target.englishWord ?? '')
+                          .trim()
+                          .toLowerCase(),
+                      })
+                    );
+                    dispatch(
+                      toastShown({
+                        message: `«${target.englishWord}» снова в работе`,
+                        type: 'info',
+                      })
+                    );
+                  }}
                 />
               );
             })}

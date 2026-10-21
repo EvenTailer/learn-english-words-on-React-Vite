@@ -20,10 +20,12 @@ export default function WordCard({
   status = 'new',
   correct,
   streak,
+  due,
   variant = 'grid',
   onSpeak,
   onDelete,
   onAddToList,
+  onReset,
 }) {
   const meta = STATUS_META[status] ?? STATUS_META.new;
   const isPreview = variant === 'preview';
@@ -73,6 +75,7 @@ export default function WordCard({
       <div className={styles.meta}>
         <Badge variant={meta.variant}>{meta.label}</Badge>
         {level ? <span className={styles.level}>{level}</span> : null}
+        {due ? <span className={styles.due}>{due}</span> : null}
       </div>
 
       {isPreview ? null : (
@@ -93,6 +96,14 @@ export default function WordCard({
               variant="accent"
               onClick={() => onSpeak?.(word)}
             />
+            {onReset ? (
+              <IconButton
+                icon={<Icon name="skip" size={20} />}
+                label={`Вернуть ${word} в работу`}
+                variant="ghost"
+                onClick={() => onReset(card)}
+              />
+            ) : null}
             {onAddToList ? (
               <IconButton
                 icon={<Icon name="list" size={20} />}

@@ -281,13 +281,16 @@
   text-align: center;
 }
 
-/* На мобильном главная кнопка липнет к низу — её всегда видно */
+/* На мобильном главная кнопка закреплена у низа экрана.
+   Sticky здесь не работает: родитель кнопки такой же низкий, тянуть нечего.
+   Fixed держит кнопку на виду всегда; снизу есть запас, чтобы она
+   не закрывала поле ответа. */
 @media (max-width: 767px) {
   .shell {
     padding: var(--space-4);
     gap: var(--space-3);
-    /* место под липкую кнопку, чтобы она не закрывала поле ответа */
-    padding-bottom: var(--space-16);
+    /* место под закреплённую кнопку */
+    padding-bottom: calc(var(--control-h-lg) + var(--space-8));
   }
 
   .word {
@@ -300,10 +303,12 @@
   }
 
   .primaryAction {
-    position: sticky;
-    bottom: var(--space-2);
+    position: fixed;
+    left: var(--page-gutter);
+    right: var(--page-gutter);
+    bottom: calc(var(--bottom-nav-height, 68px) + var(--space-2));
     z-index: var(--z-sticky);
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-3);
   }
 }
 

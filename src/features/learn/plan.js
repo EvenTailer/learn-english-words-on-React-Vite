@@ -77,10 +77,13 @@ export const selectPool = (
 
     switch (plan.source) {
       case LEARN_SOURCES.DUE:
-        return isDue(entry, now);
+        // к повторению — только те, чей срок повтора наступил
+        // (новые слова живут в источнике «Только новые»)
+        return Boolean(entry) && isDue(entry, now);
 
       case LEARN_SOURCES.ERRORS:
-        return Boolean(entry && entry.wrong > 0 && entry.status !== 'mastered');
+        // в списке ошибок — слово, на котором ошиблись в последний раз
+        return Boolean(entry) && entry.lastResult === 'wrong';
 
       case LEARN_SOURCES.NEW:
         return !entry || entry.status === 'new';

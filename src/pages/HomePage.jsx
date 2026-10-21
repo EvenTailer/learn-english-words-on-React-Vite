@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
 import { selectProgressMap } from '../features/progress/selectors';
 import { selectStreak, selectTodayStats } from '../features/stats/selectors';
-import { words } from '../shared/lib/plural';
+import { words, plural } from '../shared/lib/plural';
 import { directionSet } from '../features/settings/settingsSlice';
 import { selectCards, selectCardsCount } from '../features/words/selectors';
 import Button from '../shared/ui/Button';
@@ -38,6 +38,20 @@ export default function HomePage() {
   const progress = useAppSelector(selectProgressMap);
   const direction = useAppSelector((state) => state.settings.direction);
   const dailyGoal = useAppSelector((state) => state.settings.dailyGoal);
+
+  // Разбивка словаря: освоено / в работе / новые
+  const { mastered, learning, newWords } = useMemo(() => {
+    const entries = Object.values(progress);
+    return {
+      mastered: entries.filter((entry) => entry.status === 'mastered').length,
+      learning: entries.filter(
+        (entry) => entry.status === 'learning'
+      ).length,
+      newWords:
+        cardsCount -
+        entries.filter((entry) => entry.status !== 'new').length,
+    };
+  }, [progress, cardsCount]);
 
   // Поток слов: первые 12 карточек со статусом из прогресса
   const flowWords = useMemo(
@@ -111,15 +125,9 @@ export default function HomePage() {
             label={`${goalPercent}%`}
             caption={`${todayCorrect} из ${dailyGoal} слов сегодня`}
           />
-          <Button
-            variant="secondary"
-            fullWidth
-            icon={<Icon name="arrow-right" size={20} />}
-            iconPosition="end"
-            onClick={() => navigate('/learn')}
-          >
-            Начать занятие
-          </Button>
+          <p className={styles.goalBreakdown}>
+            Освоено {mastered} · в работе {learning} · новых {newWords}
+          </p>
         </Card>
 
         <Card padding="md" className={styles.flowCard}>
@@ -139,7 +147,8 @@ export default function HomePage() {
         />
         {streak?.longest ? (
           <p className={styles.record}>
-            Рекорд серии: {streak.longest} {pluralWords(streak.longest)}
+            Рекорд серии: {streak.longest}{' '}
+            {plural(streak.longest, 'день', 'дня', 'дней')}
           </p>
         ) : null}
       </Card>
