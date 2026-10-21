@@ -311,8 +311,9 @@
 
   .primaryAction {
     position: fixed;
-    left: var(--page-gutter);
-    right: var(--page-gutter);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(calc(100% - 2 * var(--page-gutter)), var(--layout-learn));
     bottom: calc(var(--bottom-nav-height, 68px) + var(--space-2));
     z-index: var(--z-sticky);
     box-shadow: var(--shadow-3);
