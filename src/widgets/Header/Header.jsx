@@ -6,6 +6,7 @@ const links = [
   { to: '/learn', label: '🧠 Учить' },
   { to: '/add', label: '➕ Добавить' },
   { to: '/storage', label: '📚 Хранилище' },
+  { to: '/wordlists', label: '🗂️ Наборы' },
 ];
 
 export default function Header() {

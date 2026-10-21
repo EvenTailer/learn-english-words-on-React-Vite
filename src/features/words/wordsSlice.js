@@ -13,7 +13,7 @@ const seedCards = [
     id: 'seed-monkey',
     englishWord: 'monkey',
     linkImg:
-      'https://img.freepik.com/premium-photo/close-up-lion-looking-away_1048944-5944959.jpg?semt=ais_hybrid',
+      'https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1e/Golden_monkey_%28Cercopithecus_kandti%29_eating.jpg/500px-Golden_monkey_%28Cercopithecus_kandti%29_eating.jpg',
     russianWord: 'обезьяна',
     count: 0,
   },
@@ -48,10 +48,27 @@ const wordsSlice = createSlice({
     cardRemoved(state, action) {
       state.items = state.items.filter((card) => card.id !== action.payload);
     },
+    // Массовый импорт из готовых наборов слов, дубликаты пропускаем
+    cardsImported(state, action) {
+      const existing = new Set(
+        state.items.map((card) => card.englishWord.toLowerCase())
+      );
+      for (const card of action.payload) {
+        const key = card.englishWord.toLowerCase();
+        if (existing.has(key)) continue;
+        existing.add(key);
+        state.items.push(card);
+      }
+    },
   },
 });
 
-export const { cardAdded, cardDeleted, cardCountIncremented, cardRemoved } =
-  wordsSlice.actions;
+export const {
+  cardAdded,
+  cardDeleted,
+  cardCountIncremented,
+  cardRemoved,
+  cardsImported,
+} = wordsSlice.actions;
 
 export default wordsSlice.reducer;

@@ -10,6 +10,8 @@ import {
 } from 'redux-persist';
 import cardsReducer from '../../features/words/wordsSlice';
 import learnReducer from '../../features/learn/learnSlice';
+import dictionaryReducer from '../../features/dictionary/dictionarySlice';
+import wordlistsReducer from '../../features/wordlists/wordlistsSlice';
 import { localforageStorage } from '../../shared/lib/localforageStorage';
 
 const persistedCardsReducer = persistReducer(
@@ -22,6 +24,8 @@ const persistedCardsReducer = persistReducer(
 const rootReducer = combineReducers({
   cards: persistedCardsReducer,
   learn: learnReducer,
+  dictionary: dictionaryReducer,
+  wordlists: wordlistsReducer,
 });
 
 export const store = configureStore({

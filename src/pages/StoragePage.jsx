@@ -79,6 +79,7 @@ export default function StoragePage() {
                           src={card.linkImg}
                           alt={card.englishWord}
                           className={styles.storageImage}
+                          title={card.imageSource || card.englishWord}
                           loading="lazy"
                           decoding="async"
                         />

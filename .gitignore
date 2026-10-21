@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# кеш сборки списков слов
+scripts/.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

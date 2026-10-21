@@ -14,6 +14,7 @@ import {
   selectIsRevealed,
   selectLearnMode,
 } from '../features/learn/selectors';
+import { speak } from '../shared/lib/speech';
 import styles from './LearnPage.module.css';
 
 export default function LearnPage() {
@@ -103,6 +104,18 @@ export default function LearnPage() {
               {showEnglish ? '🇬🇧 ENGLISH' : '🇷🇺 RUSSIAN'}
             </span>
             <h2 className={styles.learnWord}>{question}</h2>
+            <div className={styles.learnWordMeta}>
+              {currentCard.phonetic && (
+                <span className={styles.learnPhonetic}>{currentCard.phonetic}</span>
+              )}
+              <button
+                className="speak-btn"
+                title="Произнести"
+                onClick={() => speak(currentCard.englishWord)}
+              >
+                🔊
+              </button>
+            </div>
             {revealed && (
               <p className={styles.learnReveal}>
                 Правильный ответ: <strong>{correctAnswer}</strong>
