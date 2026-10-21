@@ -43,6 +43,13 @@ A web application to help you learn and memorize English vocabulary using flashc
 
 - **⏱ Интервальное повторение**
   Слово после верного ответа «отдыхает» 1 → 3 → 7 → 21 → 60 дней. Выученные слова возвращаются в тренировку по расписанию, а не исчезают навсегда.
+  Повтор в тот же день серию не наращивает — нужно 5 верных ответов в разные дни.
+
+- **💬 Вердикт на карточке**
+  После ответа карточка остаётся и показывает результат: «Верно!» или «Неверно. Правильный ответ: …». Дальше — кнопка «Далее».
+
+- **🎯 Режим фокуса**
+  Во время тренировки навигация скрыта: остаются только карточка, прогресс и кнопки «Выйти» / «Сменить».
 
 - **📖 Learning mode**
   The app randomly shows either the English word or its Russian translation (50/50 chance). Type your answer – the system checks it and gives instant feedback. After 5 correct answers, the card leaves the active learning set until its next review date.
