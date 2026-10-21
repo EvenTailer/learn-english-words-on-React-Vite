@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../app/store/hooks';
+import { useAppDispatch, useAppSelector, useAppStore } from '../app/store/hooks';
 import { selectProgressMap } from '../features/progress/selectors';
-import { wordRemoved, wordReset } from '../features/progress/progressSlice';
+import { wordRemoved, wordReset, progressReplaced } from '../features/progress/progressSlice';
 import { toastShown } from '../features/ui/toastSlice';
+import { statsReplaced } from '../features/stats/statsSlice';
+import { listsReplaced } from '../features/lists/listsSlice';
+import { backupSummary, downloadBackup, readBackupFile } from '../features/backup/backup';
 import { formatDue } from '../features/progress/srs';
 import { filterCards, sortCards } from '../features/words/filtering';
 import { selectCards } from '../features/words/selectors';
-import { cardDeleted } from '../features/words/wordsSlice';
+import { cardDeleted, cardsReplaced } from '../features/words/wordsSlice';
 import { speak } from '../shared/lib/speech';
 import { words } from '../shared/lib/plural';
 import Button from '../shared/ui/Button';
@@ -41,6 +44,7 @@ const FILTERS = [
 
 export default function StoragePage() {
   const dispatch = useAppDispatch();
+  const store = useAppStore();
   const navigate = useNavigate();
 
   const cards = useAppSelector(selectCards);
@@ -117,6 +121,50 @@ export default function StoragePage() {
 
   const isEmptyDictionary = cards.length === 0;
 
+  // --- Копия данных: файл JSON со словарём, прогрессом и наборами ---
+  const importInputRef = useRef(null);
+
+  const handleExport = () => {
+    downloadBackup(store.getState());
+    dispatch(
+      toastShown({ message: 'Копия сохранена в файл', type: 'success' })
+    );
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      const data = await readBackupFile(file);
+      const summary = backupSummary(data);
+
+      dispatch(cardsReplaced(data.cards ?? []));
+      dispatch(progressReplaced(data.progress ?? {}));
+      dispatch(listsReplaced(data.lists ?? []));
+      dispatch(statsReplaced(data.stats ?? {}));
+
+      dispatch(
+        toastShown({
+          message: `Загружено: слов ${summary.cards}, прогресс ${summary.progress}, наборов ${summary.lists}`,
+          type: 'success',
+        })
+      );
+    } catch (error) {
+      dispatch(
+        toastShown({
+          message: String(error?.message ?? error),
+          type: 'error',
+        })
+      );
+    }
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -141,6 +189,34 @@ export default function StoragePage() {
           Добавить слово
         </Button>
       </header>
+
+      <div className={styles.backupRow}>
+        <Button
+          variant="secondary"
+          onClick={handleExport}
+          icon={<Icon name="upload" size={20} />}
+        >
+          Сохранить копию
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleImportClick}
+          icon={<Icon name="download" size={20} />}
+        >
+          Загрузить копию
+        </Button>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json"
+          className="visually-hidden"
+          onChange={handleImportFile}
+        />
+        <p className={styles.backupHint}>
+          Данные лежат только в этом браузере. Копия — файл, который можно
+          перенести на другое устройство.
+        </p>
+      </div>
 
       <div className={styles.toolbar}>
         <div className={styles.searchRow}>

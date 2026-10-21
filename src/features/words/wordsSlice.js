@@ -57,6 +57,11 @@ const wordsSlice = createSlice({
     cardRemoved(state, action) {
       state.items = state.items.filter((card) => card.id !== action.payload);
     },
+    // Полная замена словаря — при импорте бэкапа
+    cardsReplaced(state, action) {
+      state.items = Array.isArray(action.payload) ? action.payload : [];
+    },
+
     // Массовый импорт из готовых наборов слов, дубликаты пропускаем
     cardsImported(state, action) {
       const existing = new Map(
@@ -89,6 +94,7 @@ const wordsSlice = createSlice({
 export const {
   cardAdded,
   cardDeleted,
+  cardsReplaced,
   cardCountIncremented,
   cardRemoved,
   cardsImported,

@@ -28,6 +28,16 @@ const statsSlice = createSlice({
       state.streak = action.payload;
     },
 
+    // Полная замена статистики — при импорте бэкапа
+    statsReplaced(state, action) {
+      const incoming = action.payload ?? {};
+      state.history = incoming.history ?? {};
+      state.streak = incoming.streak ?? { current: 0, longest: 0, lastActiveDate: null };
+      state.totalCorrect = incoming.totalCorrect ?? 0;
+      state.totalWrong = incoming.totalWrong ?? 0;
+      state.totalLearned = incoming.totalLearned ?? 0;
+    },
+
     statsReset(state) {
       state.history = {};
       state.streak = { current: 0, longest: 0, lastActiveDate: null };
@@ -38,6 +48,11 @@ const statsSlice = createSlice({
   },
 });
 
-export const { statsIncremented, streakUpdated, statsReset } = statsSlice.actions;
+export const {
+  statsIncremented,
+  streakUpdated,
+  statsReset,
+  statsReplaced,
+} = statsSlice.actions;
 
 export default statsSlice.reducer;

@@ -74,6 +74,11 @@ const listsSlice = createSlice({
       list.words = list.words.filter((word) => normalize(word.englishWord) !== key);
     },
 
+    // Полная замена наборов — при импорте бэкапа
+    listsReplaced(state, action) {
+      state.items = Array.isArray(action.payload) ? action.payload : [];
+    },
+
     listsReset(state) {
       state.items = [];
     },
@@ -87,6 +92,7 @@ export const {
   wordsAddedToList,
   wordRemovedFromList,
   listsReset,
+  listsReplaced,
 } = listsSlice.actions;
 
 export default listsSlice.reducer;

@@ -79,6 +79,9 @@ const progressSlice = createSlice({
         // streak — сколько сессий подряд слово отвечали верно.
         // Один ответ за сессию: карточка уходит из тренировки после ответа,
         // поэтому 5 верных = 5 разных сессий с интервалами 1/3/7/21/60 дней.
+        // Серия растёт только если слово было просрочено: повтор в тот же
+        // день не засчитывается. Так 5 верных ответов = 5 разных дней
+        // с интервалами 1/3/7/21/60, а не 5 кликов подряд.
         const dueNow = isDue(existing, Date.now());
         if (dueNow) {
           existing.streak = Math.min((existing.streak ?? 0) + 1, MASTERY_THRESHOLD);
@@ -106,6 +109,11 @@ const progressSlice = createSlice({
 
       existing.lastSeenAt = Date.now();
       state.words[key] = existing;
+    },
+
+    // Полная замена прогресса — при импорте бэкапа
+    progressReplaced(state, action) {
+      state.words = action.payload ?? {};
     },
 
     wordRemoved(state, action) {
@@ -139,6 +147,7 @@ export const {
   wordAnswered,
   wordRemoved,
   wordReset,
+  progressReplaced,
   progressReset,
 } = progressSlice.actions;
 

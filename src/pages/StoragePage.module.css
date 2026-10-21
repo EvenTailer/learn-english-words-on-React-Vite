@@ -129,3 +129,19 @@
   line-height: var(--lh-relaxed);
   color: var(--text-3);
 }
+
+/* Блок копии данных */
+.backupRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.backupHint {
+  margin: 0;
+  flex: 1 1 260px;
+  font-size: var(--text-label);
+  line-height: var(--lh-relaxed);
+  color: var(--text-3);
+}

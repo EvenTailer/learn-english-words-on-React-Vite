@@ -1,6 +1,6 @@
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 
-// Типизированные хуки: компоненты не знают про структуру стора,
-// но получают готовые useDispatch / useSelector
 export const useAppDispatch = useDispatch;
 export const useAppSelector = useSelector;
+// Нужен для операций вне рендера: экспорт данных, отправка в бэкап
+export const useAppStore = useStore;
