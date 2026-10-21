@@ -121,3 +121,11 @@
     gap: var(--space-1);
   }
 }
+
+/* Подсказка: как добавить слово в набор */
+.toolbarHint {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--lh-relaxed);
+  color: var(--text-3);
+}

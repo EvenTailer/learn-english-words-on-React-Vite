@@ -20,12 +20,13 @@ export default function SetCreateModal({ open, onClose, onCreated }) {
     const clean = name.trim();
     if (!clean) return;
 
-    dispatch(listCreated({ name: clean, description: description.trim() }));
+    const created = listCreated({ name: clean, description: description.trim() });
+    dispatch(created);
     dispatch(toastShown({ message: `Набор «${clean}» создан`, type: 'success' }));
     setName('');
     setDescription('');
     onClose();
-    onCreated?.();
+    onCreated?.(created.payload);
   };
 
   return (

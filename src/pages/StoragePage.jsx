@@ -168,6 +168,10 @@ export default function StoragePage() {
             />
           ))}
         </div>
+
+        <p className={styles.toolbarHint}>
+          Кнопка со списком на карточке добавляет слово в свой набор
+        </p>
       </div>
 
       {isEmptyDictionary ? (

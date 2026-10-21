@@ -15,7 +15,8 @@ import Card from '../shared/ui/Card';
 import Icon from '../shared/ui/Icon';
 import IconButton from '../shared/ui/IconButton';
 import Input from '../shared/ui/Input';
-import Select from '../shared/ui/Select';
+import Chip from '../shared/ui/Chip';
+import SetCreateModal from '../widgets/SetCreateModal/SetCreateModal';
 import WordCard from '../widgets/WordCard/WordCard';
 import styles from './AddPage.module.css';
 
@@ -41,6 +42,7 @@ export default function AddPage() {
   const [englishError, setEnglishError] = useState('');
   const [russianError, setRussianError] = useState('');
   const [listId, setListId] = useState('');
+  const [isCreatingSet, setIsCreatingSet] = useState(false);
 
   const englishRef = useRef(null);
   const russianRef = useRef(null);
@@ -355,21 +357,30 @@ export default function AddPage() {
               ) : null}
             </div>
 
-            {lists.length > 0 ? (
-              <Select
-                label="Добавить в набор"
-                value={listId}
-                options={[
-                  { value: '', label: 'Без набора' },
-                  ...lists.map((list) => ({
-                    value: list.id,
-                    label: `${list.name} (${list.words.length})`,
-                  })),
-                ]}
-                onChange={setListId}
-                hint="Слово попадёт в свой набор и в словарь"
-              />
-            ) : null}
+            <div className={styles.setBlock}>
+              <span className={styles.setLabel}>Добавить в набор</span>
+              <div className={styles.setChips} role="group" aria-label="Набор для слова">
+                {lists.map((list) => (
+                  <Chip
+                    key={list.id}
+                    label={`${list.name} (${list.words.length})`}
+                    active={listId === list.id}
+                    onClick={() =>
+                      setListId(listId === list.id ? '' : list.id)
+                    }
+                  />
+                ))}
+                <Chip
+                  label="+ Создать набор"
+                  onClick={() => setIsCreatingSet(true)}
+                />
+              </div>
+              <p className={styles.setHint}>
+                {lists.length === 0
+                  ? 'Слово попадёт в словарь. Набор можно создать здесь же'
+                  : 'Слово попадёт в выбранный набор и в словарь'}
+              </p>
+            </div>
 
             <div className={styles.imageBlock}>
               <Input
@@ -444,6 +455,12 @@ export default function AddPage() {
           />
         </aside>
       </div>
+
+      <SetCreateModal
+        open={isCreatingSet}
+        onClose={() => setIsCreatingSet(false)}
+        onCreated={(set) => setListId(set.id)}
+      />
     </div>
   );
 }
