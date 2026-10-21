@@ -328,6 +328,16 @@
 @media (max-width: 767px) {
   .page {
     padding: var(--space-6) var(--page-gutter);
+    /* запас снизу под закреплённую кнопку */
+    padding-bottom: calc(var(--control-h-lg) + var(--space-10));
+  }
+
+  .stickySubmit {
+    position: fixed;
+    left: var(--page-gutter);
+    right: var(--page-gutter);
+    bottom: calc(var(--bottom-nav-height, 68px) + var(--space-2));
+    z-index: var(--z-sticky);
   }
 
   .title {
@@ -408,7 +418,4 @@
   position: sticky;
   bottom: var(--space-3);
   z-index: var(--z-sticky);
-  padding: var(--space-2);
-  border-radius: var(--radius-lg);
-  background: var(--surface-canvas);
 }

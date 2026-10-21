@@ -148,7 +148,13 @@ export default function AddPage() {
       .unwrap()
       .then((result) => {
         if (!result) return;
-        setRussianWord((prev) => (prev.trim() ? prev : result.russianWord ?? ''));
+        // перевод, совпадающий с английским словом, — это не перевод
+        const translation =
+          result.russianWord &&
+          result.russianWord.trim().toLowerCase() !== word.toLowerCase()
+            ? result.russianWord
+            : '';
+        setRussianWord((prev) => (prev.trim() ? prev : translation));
         setPhonetic(result.phonetic ?? '');
         setDefinition(result.definition ?? '');
         setExample(result.example ?? '');
@@ -157,8 +163,10 @@ export default function AddPage() {
         setLinkImg((prev) => (prev.trim() ? prev : result.imageUrl ?? ''));
         setImageSource(result.imageSource ?? '');
         setExistingCard(null);
-        if (!result.russianWord) {
-          setLookupError('Слово найдено, но перевода нет — впишите его сами');
+        if (!translation) {
+          setLookupError(
+            'Слово найдено, но перевода нет — впишите его сами'
+          );
         }
       })
       .catch((error) => {
@@ -571,6 +579,25 @@ export default function AddPage() {
             </p>
           </Card>
 
+          {/* Главное действие — сразу после обязательных шагов */}
+          <div className={styles.actions}>
+            <div className={styles.stickySubmit}>
+              <Button
+                variant={isReady || needsSet ? 'primary' : 'secondary'}
+                type="submit"
+                size="lg"
+                fullWidth
+                disabled={!isReady && !needsSet}
+                icon={<Icon name="plus" size={20} />}
+              >
+                {existingCard ? 'Добавить в набор' : 'Добавить в словарь'}
+              </Button>
+            </div>
+            <Button variant="ghost" type="button" onClick={resetForm}>
+              Очистить
+            </Button>
+          </div>
+
           {/* Картинка — второстепенное, по умолчанию свёрнуто */}
           <div className={styles.imageBlock}>
             <button
@@ -626,23 +653,6 @@ export default function AddPage() {
             ) : null}
           </div>
 
-          <div className={styles.actions}>
-            <div className={styles.stickySubmit}>
-              <Button
-                variant={isReady || needsSet ? 'primary' : 'secondary'}
-                type="submit"
-                size="lg"
-                fullWidth
-                disabled={!isReady && !needsSet}
-                icon={<Icon name="plus" size={20} />}
-              >
-                {existingCard ? 'Добавить в набор' : 'Добавить в словарь'}
-              </Button>
-            </div>
-            <Button variant="ghost" type="button" onClick={resetForm}>
-              Очистить
-            </Button>
-          </div>
         </form>
 
         <aside className={styles.preview} aria-label="Что сохранится">

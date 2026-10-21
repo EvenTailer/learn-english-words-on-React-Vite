@@ -102,3 +102,45 @@
 .mistakeRu {
   color: var(--text-2);
 }
+
+/* Пропущенные слова */
+.skipped {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.skippedTitle {
+  margin: 0;
+  font-size: var(--text-label);
+  font-weight: var(--fw-semibold);
+  color: var(--text-2);
+}
+
+.skippedList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skippedItem {
+  display: flex;
+  gap: var(--space-2);
+  font-size: var(--text-label);
+}
+
+.skippedEn {
+  font-weight: var(--fw-medium);
+  color: var(--text-1);
+}
+
+.skippedRu {
+  color: var(--text-2);
+}

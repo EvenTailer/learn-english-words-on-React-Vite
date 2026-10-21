@@ -12,6 +12,7 @@ export default function SessionSummary({ session, onRestart, onHome, onChangePla
   const answered = stats.answered ?? 0;
   const total = stats.total ?? 0;
   const wrongWords = stats.wrongWords ?? [];
+  const skippedWords = stats.skippedWords ?? [];
 
   return (
     <Card variant="elevated" padding="lg" className={styles.summary}>
@@ -59,6 +60,20 @@ export default function SessionSummary({ session, onRestart, onHome, onChangePla
               <li key={word.englishWord} className={styles.mistake}>
                 <span className={styles.mistakeEn}>{word.englishWord}</span>
                 <span className={styles.mistakeRu}>{word.russianWord}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {skippedWords.length > 0 ? (
+        <div className={styles.skipped}>
+          <h3 className={styles.skippedTitle}>Пропущены</h3>
+          <ul className={styles.skippedList}>
+            {skippedWords.map((word) => (
+              <li key={word.englishWord} className={styles.skippedItem}>
+                <span className={styles.skippedEn}>{word.englishWord}</span>
+                <span className={styles.skippedRu}>{word.russianWord}</span>
               </li>
             ))}
           </ul>

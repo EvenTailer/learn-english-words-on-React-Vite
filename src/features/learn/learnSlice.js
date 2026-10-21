@@ -20,6 +20,7 @@ const initialState = {
     skipped: 0,
     learned: 0,
     wrongWords: [], // слова, где ошиблись: { englishWord, russianWord }
+    skippedWords: [], // слова, которые пропустили или открыли ответ
   },
 };
 
@@ -77,6 +78,7 @@ const learnSlice = createSlice({
         skipped: 0,
         learned: 0,
         wrongWords: [],
+        skippedWords: [],
       };
     },
     sessionStatAdded(state, action) {
@@ -84,6 +86,16 @@ const learnSlice = createSlice({
       if (kind === 'answered') state.session.answered += value;
       else if (kind in state.session) state.session[kind] += value;
     },
+    // Слово, которое пропустили или открыли ответ
+    sessionSkippedWordAdded(state, action) {
+      const word = action.payload;
+      if (!word?.englishWord) return;
+      const exists = state.session.skippedWords.some(
+        (item) => item.englishWord === word.englishWord
+      );
+      if (!exists) state.session.skippedWords.push(word);
+    },
+
     // Слово, в котором ошиблись — показываем в итогах
     sessionWrongWordAdded(state, action) {
       const word = action.payload;
@@ -115,6 +127,7 @@ export const {
   sessionReset,
   sessionStatAdded,
   sessionWrongWordAdded,
+  sessionSkippedWordAdded,
   learnFinished,
 } = learnSlice.actions;
 

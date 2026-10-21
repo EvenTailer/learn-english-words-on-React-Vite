@@ -16,6 +16,7 @@ import {
   sessionReset,
   sessionStatAdded,
   sessionWrongWordAdded,
+  sessionSkippedWordAdded,
 } from './learnSlice';
 import {
   ANSWER_MODES,
@@ -228,8 +229,18 @@ export const skipCard = () => (dispatch, getState) => {
   const { currentCardId, queue } = state.learn;
   if (!currentCardId) return;
 
+  const card = selectCards(state).find((item) => item.id === currentCardId);
+
   dispatch(sessionStatAdded({ kind: 'answered' }));
   dispatch(sessionStatAdded({ kind: 'skipped' }));
+  if (card) {
+    dispatch(
+      sessionSkippedWordAdded({
+        englishWord: card.englishWord,
+        russianWord: card.russianWord,
+      })
+    );
+  }
 
   // Пропущенная карточка покидает сессию, вердикт прошлого ответа сбрасываем
   dispatch(verdictCleared());
@@ -244,6 +255,14 @@ export const revealAnswer = () => (dispatch, getState) => {
   // Ответ показывается прямо на карточке — тост не нужен
   dispatch(verdictCleared());
   dispatch(answerRevealed());
+  // показанный ответ — это тоже попытка, её видно в прогрессе и итогах
+  dispatch(sessionStatAdded({ kind: 'answered' }));
+  dispatch(
+    sessionSkippedWordAdded({
+      englishWord: card.englishWord,
+      russianWord: card.russianWord,
+    })
+  );
 };
 
 // Выбран вариант ответа — подставляем его в поле, проверку запускает пользователь
