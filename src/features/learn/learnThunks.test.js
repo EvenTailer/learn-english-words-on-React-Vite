@@ -200,6 +200,38 @@ describe('checkAnswer', () => {
     expect(store.getState().learn.queue).not.toContain(card.id);
   });
 
+  it('вердикт не остаётся на следующей карточке', () => {
+    const store = makeStore();
+    store.dispatch(startLearn());
+
+    answer(store, 'точно неправильный ответ');
+    expect(store.getState().learn.verdict).not.toBeNull();
+
+    store.dispatch(nextCard());
+    expect(store.getState().learn.verdict).toBeNull();
+  });
+
+  it('вердикт сбрасывается при пропуске карточки', () => {
+    const store = makeStore();
+    store.dispatch(startLearn());
+
+    answer(store, 'точно неправильный ответ');
+    expect(store.getState().learn.verdict).not.toBeNull();
+
+    store.dispatch(skipCard());
+    expect(store.getState().learn.verdict).toBeNull();
+  });
+
+  it('вердикт сбрасывается при новой тренировке', () => {
+    const store = makeStore();
+    store.dispatch(startLearn());
+
+    answer(store, 'точно неправильный ответ');
+    store.dispatch(startLearn());
+
+    expect(store.getState().learn.verdict).toBeNull();
+  });
+
   it('выученное слово не попадает в новую сессию', () => {
     const store = makeStore(CARDS, {
       theme: 'dark',

@@ -26,6 +26,8 @@ const learnSlice = createSlice({
       state.answer = '';
       state.revealed = false;
       state.finished = false;
+      // новая карточка — вердикт от предыдущей не должен висеть на ней
+      state.verdict = null;
       state.plan = action.payload.plan ?? state.plan;
       state.answerMode = action.payload.answerMode ?? state.answerMode;
       state.choices = action.payload.choices ?? [];
@@ -56,6 +58,7 @@ const learnSlice = createSlice({
       state.revealed = false;
       state.finished = false;
       state.choices = [];
+      state.verdict = null;
     },
     sessionReset(state, action) {
       state.session = {

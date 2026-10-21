@@ -187,7 +187,7 @@ export default function LearnCard({
               placeholder={
                 isAudio ? 'Введите слово на английском...' : 'Введите перевод...'
               }
-              disabled={revealed}
+              disabled={revealed || Boolean(verdict)}
               inputRef={inputRef}
               autoComplete="off"
             />
@@ -232,7 +232,7 @@ export default function LearnCard({
             variant="ghost"
             icon={<Icon name="eye" size={20} />}
             onClick={onReveal}
-            disabled={revealed}
+            disabled={revealed || Boolean(verdict)}
           >
             Показать ответ
           </Button>
@@ -240,15 +240,18 @@ export default function LearnCard({
             variant="ghost"
             icon={<Icon name="skip" size={20} />}
             onClick={onSkip}
+            disabled={Boolean(verdict)}
           >
             Пропустить
           </Button>
         </div>
 
         <p className={styles.hint}>
-          {isChoice
-            ? 'Выберите перевод и нажмите «Проверить»'
-            : 'Впишите перевод и нажмите «Проверить»'}
+          {verdict
+            ? 'Нажмите «Далее», чтобы продолжить'
+            : isChoice
+              ? 'Выберите перевод и нажмите «Проверить»'
+              : 'Впишите перевод и нажмите «Проверить»'}
         </p>
       </div>
     </Card>

@@ -360,7 +360,7 @@ export default function AddPage() {
                 label="Добавить в набор"
                 value={listId}
                 options={[
-                  { value: '', label: 'Без списка' },
+                  { value: '', label: 'Без набора' },
                   ...lists.map((list) => ({
                     value: list.id,
                     label: `${list.name} (${list.words.length})`,

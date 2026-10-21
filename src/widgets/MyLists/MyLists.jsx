@@ -105,7 +105,7 @@ export default function MyLists({ onCreate }) {
           </p>
         </div>
         <Button
-          variant="primary"
+          variant="secondary"
           icon={<Icon name="plus" size={20} />}
           onClick={handleCreate}
         >
@@ -115,7 +115,7 @@ export default function MyLists({ onCreate }) {
 
       {lists.length === 0 ? (
         <EmptyState
-          title="Своих списков пока нет"
+          title="Своих наборов пока нет"
           description="Создайте набор и добавляйте в него слова из «Хранилища» или со страницы «Добавить»."
           icon={<Icon name="list" size={32} />}
           action={
@@ -140,7 +140,7 @@ export default function MyLists({ onCreate }) {
                       hideLabel
                       value={editName}
                       onChange={setEditName}
-                      placeholder="Название списка"
+                      placeholder="Название набора"
                       autoComplete="off"
                     />
                     <Button variant="primary" onClick={() => handleRename(list.id)}>
@@ -193,7 +193,7 @@ export default function MyLists({ onCreate }) {
                       <span className={styles.wordRu}>{word.russianWord}</span>
                       <IconButton
                         icon={<Icon name="close" size={16} />}
-                        label={`Убрать ${word.englishWord} из списка`}
+                        label={`Убрать ${word.englishWord} из набора`}
                         variant="ghost"
                         size="sm"
                         onClick={() =>

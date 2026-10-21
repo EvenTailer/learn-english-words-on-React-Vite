@@ -4,7 +4,7 @@
   position: fixed;
   left: var(--space-4);
   right: var(--space-4);
-  bottom: var(--space-8);
+  bottom: var(--toast-bottom, var(--space-8));
   margin-inline: auto;
   z-index: var(--z-toast);
   /* Перехватывать клики нельзя: тост не должен мешать нажимать кнопки */
@@ -90,7 +90,10 @@
 
 @media (max-width: 767px) {
   .toast-wrap {
-    /* над нижним таб-баром */
-    bottom: calc(var(--bottom-nav-height, 68px) + var(--space-3));
+    /* над нижним таб-баром (в режиме фокуса — над липкими кнопками) */
+    bottom: var(
+      --toast-bottom,
+      calc(var(--bottom-nav-height, 68px) + var(--space-3))
+    );
   }
 }

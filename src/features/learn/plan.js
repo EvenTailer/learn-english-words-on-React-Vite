@@ -59,7 +59,7 @@ const progressKey = (word) => String(word ?? '').trim().toLowerCase();
 /**
  * Отбирает слова под план тренировки.
  * progressMap — карта прогресса по слову, now — текущий момент.
- * listWords — слова выбранного своего списка (для source=list).
+ * listWords — слова выбранного своего набора (для source=list).
  */
 export const selectPool = (
   cards,

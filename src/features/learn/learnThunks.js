@@ -224,7 +224,8 @@ export const skipCard = () => (dispatch, getState) => {
   dispatch(sessionStatAdded({ kind: 'answered' }));
   dispatch(sessionStatAdded({ kind: 'skipped' }));
 
-  // Пропущенная карточка тоже покидает сессию
+  // Пропущенная карточка покидает сессию, вердикт прошлого ответа сбрасываем
+  dispatch(verdictCleared());
   moveToNextCard(dispatch, getState, currentCardId, queue);
 };
 
@@ -234,6 +235,7 @@ export const revealAnswer = () => (dispatch, getState) => {
   const card = selectCards(state).find((item) => item.id === currentCardId);
   if (!card) return;
   // Ответ показывается прямо на карточке — тост не нужен
+  dispatch(verdictCleared());
   dispatch(answerRevealed());
 };
 

@@ -11,7 +11,7 @@ import Modal from '../../shared/ui/Modal';
 import styles from './AddToListModal.module.css';
 
 /**
- * Окно «Добавить в набор»: выбираем свои списки для слова.
+ * Окно «Добавить в набор»: выбираем свои наборы для слова.
  * Слово добавляется сразу, если его ещё нет.
  */
 export default function AddToListModal({ card, open, onClose }) {
@@ -68,7 +68,7 @@ export default function AddToListModal({ card, open, onClose }) {
 
     dispatch(
       toastShown({
-        message: `Добавлено в списков: ${selected.length}`,
+        message: `Добавлено в наборов: ${selected.length}`,
         type: 'success',
       })
     );
@@ -98,7 +98,7 @@ export default function AddToListModal({ card, open, onClose }) {
 
       {lists.length === 0 ? (
         <EmptyState
-          title="Своих списков нет"
+          title="Своих наборов нет"
           description="Создайте набор на странице «Наборы» — там есть вкладка «Мои наборы»."
           icon={<Icon name="list" size={28} />}
         />
