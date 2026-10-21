@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { ANSWER_MODES } from './plan';
+import { ANSWER_MODES, DEFAULT_PLAN } from './plan';
 
 const initialState = {
   currentCardId: null,
@@ -57,6 +57,11 @@ const learnSlice = createSlice({
     choicesSet(state, action) {
       state.choices = action.payload ?? [];
     },
+    // План, выбранный заранее (например, «Учить по набору»)
+    learnPlanSet(state, action) {
+      state.plan = { ...DEFAULT_PLAN, ...(action.payload ?? {}) };
+    },
+
     // Вернуться к выбору: что учить
     planCleared(state) {
       state.plan = null;
@@ -124,6 +129,7 @@ export const {
   verdictCleared,
   choicesSet,
   planCleared,
+  learnPlanSet,
   sessionReset,
   sessionStatAdded,
   sessionWrongWordAdded,

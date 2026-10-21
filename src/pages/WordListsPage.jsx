@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
 import { wordsAdded } from '../features/progress/progressSlice';
 import { toastShown } from '../features/ui/toastSlice';
@@ -8,6 +9,7 @@ import { selectCards } from '../features/words/selectors';
 import { cardsImported } from '../features/words/wordsSlice';
 import { createId } from '../shared/lib/id';
 import { words } from '../shared/lib/plural';
+import { learnPlanSet } from '../features/learn/learnSlice';
 import Button from '../shared/ui/Button';
 import Card from '../shared/ui/Card';
 import Chip from '../shared/ui/Chip';
@@ -27,6 +29,7 @@ const TABS = [
 
 export default function WordListsPage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const status = useAppSelector((state) => state.wordlists.status);
   const data = useAppSelector((state) => state.wordlists.data);
@@ -121,8 +124,20 @@ export default function WordListsPage() {
         ))}
       </div>
 
+      <p className={styles.tabsHint}>
+        {tab === 'lists'
+          ? 'Мои наборы — ваши темы. Слова живут в наборе, пока вы их не добавите в словарь.'
+          : 'Готовые наборы — подборки слов. Кнопка копирует их в словарь, и они становятся доступны для тренировки.'}
+      </p>
+
       {tab === 'lists' ? (
-        <MyLists onCreate={() => setIsCreatingSet(true)} />
+        <MyLists
+          onCreate={() => setIsCreatingSet(true)}
+          onLearn={(list) => {
+            dispatch(learnPlanSet({ source: 'list', listId: list.id }));
+            navigate('/learn');
+          }}
+        />
       ) : (
         <>
           {isLoading ? (

@@ -50,6 +50,7 @@ export default function LearnPage() {
   const answerMode = useAppSelector((state) => state.learn.answerMode);
   const choices = useAppSelector((state) => state.learn.choices);
   const verdict = useAppSelector((state) => state.learn.verdict);
+  const state = useAppSelector((s) => s.learn);
 
   const inputRef = useRef(null);
   const [lastResult, setLastResult] = useState(null);
@@ -147,6 +148,13 @@ export default function LearnPage() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [handlePrimary, navigate]);
+
+  // План выбран заранее (например, «Учить по набору») — начинаем сразу
+  useEffect(() => {
+    if (!plan || finished) return;
+    if (state.currentCardId) return;
+    dispatch(startLearn(plan));
+  }, [dispatch, plan, finished, state.currentCardId]);
 
   const total = session?.total ?? 0;
   const answered = session?.answered ?? 0;

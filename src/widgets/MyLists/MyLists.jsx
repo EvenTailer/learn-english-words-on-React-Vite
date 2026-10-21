@@ -7,6 +7,7 @@ import { toastShown } from '../../features/ui/toastSlice';
 import { selectCards } from '../../features/words/selectors';
 import { cardsImported } from '../../features/words/wordsSlice';
 import { createId } from '../../shared/lib/id';
+import { words } from '../../shared/lib/plural';
 import Button from '../../shared/ui/Button';
 import Card from '../../shared/ui/Card';
 import ConfirmDialog from '../../shared/ui/ConfirmDialog';
@@ -21,7 +22,7 @@ import styles from './MyLists.module.css';
  * Свои наборы слов: пользователь собирает тематические наборы вручную.
  * Слова набора можно залить в словарь одной кнопкой — тогда их можно учить.
  */
-export default function MyLists({ onCreate }) {
+export default function MyLists({ onCreate, onLearn }) {
   const dispatch = useAppDispatch();
 
   const lists = useAppSelector(selectLists);
@@ -36,7 +37,7 @@ export default function MyLists({ onCreate }) {
     [lists, pendingDeleteId]
   );
 
-  // Сколько слов списка уже есть в словаре
+  // Какие слова набора уже есть в словаре, а какие «осиротели»
   const inDictionary = useMemo(() => {
     const keys = new Set(
       cards.map((card) => String(card.englishWord ?? '').trim().toLowerCase())
@@ -45,6 +46,17 @@ export default function MyLists({ onCreate }) {
       list.words.filter(
         (word) => keys.has(String(word.englishWord ?? '').trim().toLowerCase())
       ).length;
+  }, [cards]);
+
+  // Слова набора, которых больше нет в словаре — их нельзя тренировать
+  const orphans = useMemo(() => {
+    const keys = new Set(
+      cards.map((card) => String(card.englishWord ?? '').trim().toLowerCase())
+    );
+    return (list) =>
+      list.words.filter(
+        (word) => !keys.has(String(word.englishWord ?? '').trim().toLowerCase())
+      );
   }, [cards]);
 
   const handleCreate = () => {
@@ -94,7 +106,6 @@ export default function MyLists({ onCreate }) {
       })
     );
   };
-
   return (
     <div className={styles.wrap}>
       <header className={styles.header}>
@@ -155,8 +166,10 @@ export default function MyLists({ onCreate }) {
                     <div className={styles.cardHeadings}>
                       <h3 className={styles.name}>{list.name}</h3>
                       <p className={styles.meta}>
-                        слов: {list.words.length} · в словаре:{' '}
-                        {inDictionary(list)}
+                        {list.words.length} {words(list.words.length)}
+                        {list.words.length > 0 ? (
+                          <> · {inDictionary(list)} из них в словаре</>
+                        ) : null}
                       </p>
                     </div>
                     <div className={styles.cardActions}>
@@ -187,38 +200,62 @@ export default function MyLists({ onCreate }) {
                 </p>
               ) : (
                 <ul className={styles.words}>
-                  {list.words.map((word) => (
-                    <li key={word.englishWord} className={styles.word}>
-                      <span className={styles.wordEn}>{word.englishWord}</span>
-                      <span className={styles.wordRu}>{word.russianWord}</span>
-                      <IconButton
-                        icon={<Icon name="close" size={16} />}
-                        label={`Убрать ${word.englishWord} из набора`}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          dispatch(
-                            wordRemovedFromList({
-                              listId: list.id,
-                              englishWord: word.englishWord,
-                            })
-                          )
-                        }
-                      />
-                    </li>
-                  ))}
+                  {list.words.map((word) => {
+                    const missing = orphans(list).some(
+                      (item) => item.englishWord === word.englishWord
+                    );
+                    return (
+                      <li key={word.englishWord} className={styles.word}>
+                        <span className={styles.wordEn}>{word.englishWord}</span>
+                        <span className={styles.wordRu}>{word.russianWord}</span>
+                        {missing ? (
+                          <span className={styles.missing}>нет в словаре</span>
+                        ) : null}
+                        <IconButton
+                          icon={<Icon name="close" size={16} />}
+                          label={`Убрать ${word.englishWord} из набора`}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            dispatch(
+                              wordRemovedFromList({
+                                listId: list.id,
+                                englishWord: word.englishWord,
+                              })
+                            );
+                            dispatch(
+                              toastShown({
+                                message: `«${word.englishWord}» убрано из набора «${list.name}»`,
+                                type: 'info',
+                              })
+                            );
+                          }}
+                        />
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
 
               {list.words.length > 0 ? (
-                <Button
-                  variant="secondary"
-                  fullWidth
-                  icon={<Icon name="plus" size={20} />}
-                  onClick={() => handleImport(list)}
-                >
-                  Добавить в словарь
-                </Button>
+                <div className={styles.cardActionsRow}>
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    icon={<Icon name="plus" size={20} />}
+                    onClick={() => handleImport(list)}
+                  >
+                    Вернуть в словарь
+                  </Button>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    icon={<Icon name="learn" size={20} />}
+                    onClick={() => onLearn?.(list)}
+                  >
+                    Учить по набору
+                  </Button>
+                </div>
               ) : null}
             </Card>
           ))}

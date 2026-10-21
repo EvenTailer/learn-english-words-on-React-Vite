@@ -39,13 +39,20 @@ export default function LearnSetup() {
   const progressMap = useAppSelector(selectProgressMap);
   const lists = useAppSelector(selectLists);
   const direction = useAppSelector((state) => state.settings.direction);
+  const plan = useAppSelector((state) => state.learn.plan);
 
-  const [source, setSource] = useState(LEARN_SOURCES.ALL);
-  const [setKey, setSetKey] = useState(WORD_SETS[0].key);
-  const [listId, setListId] = useState('');
-  const [size, setSize] = useState('20');
-  const [answerMode, setAnswerMode] = useState(ANSWER_MODES.TEXT);
-  const [directionChoice, setDirectionChoice] = useState(direction);
+  const [source, setSource] = useState(
+    plan?.source ?? LEARN_SOURCES.ALL
+  );
+  const [setKey, setSetKey] = useState(plan?.setKey ?? WORD_SETS[0].key);
+  const [listId, setListId] = useState(plan?.listId ?? '');
+  const [size, setSize] = useState(String(plan?.size ?? 20));
+  const [answerMode, setAnswerMode] = useState(
+    plan?.answerMode ?? ANSWER_MODES.TEXT
+  );
+  const [directionChoice, setDirectionChoice] = useState(
+    plan?.direction ?? direction
+  );
 
   // Наборы приезжают из persist позже — берём первый, если ещё не выбран
   const activeListId = listId || lists[0]?.id || '';

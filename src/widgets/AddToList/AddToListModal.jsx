@@ -3,7 +3,6 @@ import { useAppDispatch, useAppSelector } from '../../app/store/hooks';
 import { selectLists } from '../../features/lists/selectors';
 import { wordsAddedToList } from '../../features/lists/listsSlice';
 import { toastShown } from '../../features/ui/toastSlice';
-import { sets } from '../../shared/lib/plural';
 import Button from '../../shared/ui/Button';
 import Chip from '../../shared/ui/Chip';
 import EmptyState from '../../shared/ui/EmptyState';
@@ -49,11 +48,8 @@ export default function AddToListModal({ card, open, onClose, onCreate }) {
   };
 
   const handleSave = () => {
-    if (selected.length === 0) {
-      dispatch(toastShown({ message: 'Ни один набор не выбран', type: 'info' }));
-      onClose();
-      return;
-    }
+    // без выбранного набора закрывать нельзя — слово потеряется
+    if (selected.length === 0) return;
 
     const word = {
       englishWord: card.englishWord,
@@ -67,9 +63,13 @@ export default function AddToListModal({ card, open, onClose, onCreate }) {
       dispatch(wordsAddedToList({ listId, words: [word] }));
     }
 
+    const names = selected
+      .map((id) => lists.find((list) => list.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
     dispatch(
       toastShown({
-        message: `Добавлено в ${selected.length} ${sets(selected.length)}`,
+        message: `«${card.englishWord}» — в наборы: ${names}`,
         type: 'success',
       })
     );
@@ -83,7 +83,7 @@ export default function AddToListModal({ card, open, onClose, onCreate }) {
       onClose={onClose}
       footer={
         <div className={styles.actions}>
-          <Button variant="primary" onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave} disabled={selected.length === 0}>
             Добавить
           </Button>
           <Button variant="ghost" onClick={onClose}>
@@ -122,6 +122,9 @@ export default function AddToListModal({ card, open, onClose, onCreate }) {
           ))}
         </div>
       )}
+      {selected.length === 0 ? (
+        <p className={styles.hint}>Выберите набор — слово добавится в него</p>
+      ) : null}
     </Modal>
   );
 }
