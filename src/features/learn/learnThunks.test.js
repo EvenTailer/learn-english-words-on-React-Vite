@@ -270,6 +270,19 @@ describe('skipCard', () => {
     expect(store.getState().cards.items[0].count).toBe(0);
     expect(store.getState().learn.session.skipped).toBe(1);
   });
+
+  it('пропущенное слово попадает в список для повторения', () => {
+    const store = makeStore();
+    store.dispatch(startLearn());
+    const card = currentCardOf(store);
+
+    store.dispatch(skipCard());
+
+    expect(store.getState().learn.session.skippedWords).toHaveLength(1);
+    expect(store.getState().learn.session.skippedWords[0].englishWord).toBe(
+      card.englishWord
+    );
+  });
 });
 
 describe('revealAnswer', () => {
@@ -282,7 +295,28 @@ describe('revealAnswer', () => {
 
     expect(store.getState().learn.revealed).toBe(true);
     expect(store.getState().learn.currentCardId).toBe(before);
-    // ответ показывается прямо на карточке — тост больше не нужен
-    expect(store.getState().learn.revealed).toBe(true);
+  });
+
+  it('считается попыткой: прогресс сессии двигается', () => {
+    const store = makeStore();
+    store.dispatch(startLearn());
+    expect(store.getState().learn.session.answered).toBe(0);
+
+    store.dispatch(revealAnswer());
+
+    expect(store.getState().learn.session.answered).toBe(1);
+  });
+
+  it('попадает в список пропущенных', () => {
+    const store = makeStore();
+    store.dispatch(startLearn());
+    const card = currentCardOf(store);
+
+    store.dispatch(revealAnswer());
+
+    expect(store.getState().learn.session.skippedWords).toHaveLength(1);
+    expect(store.getState().learn.session.skippedWords[0].englishWord).toBe(
+      card.englishWord
+    );
   });
 });
