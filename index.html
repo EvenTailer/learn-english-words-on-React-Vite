@@ -1,14 +1,34 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta
       name="description"
       content="Интерактивный тренажёр английской лексики: карточки, разминка, своё хранилище слов"
     />
+    <meta name="theme-color" content="#070c16" />
     <title>Learn English Words</title>
+    <script>
+      // Тему ставим до первой отрисовки, иначе мигнёт светлым
+      try {
+        var stored = localStorage.getItem('learn-english-theme');
+        if (stored) {
+          document.documentElement.dataset.theme = stored;
+          document.documentElement.style.colorScheme =
+            stored === 'light' ? 'light' : 'dark';
+        } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+          document.documentElement.dataset.theme = 'light';
+          document.documentElement.style.colorScheme = 'light';
+        }
+      } catch (error) {
+        /* приватный режим — остаётся тема по умолчанию */
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

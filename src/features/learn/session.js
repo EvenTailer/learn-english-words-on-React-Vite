@@ -1,5 +1,8 @@
 // Чистая логика учебной сессии: очередь карточек вместо случайного выбора
 
+// Сколько карточек в одной сессии
+export const SESSION_SIZE = 20;
+
 // Перемешивание Фишера—Йетса
 export const shuffle = (items) => {
   const result = [...items];
@@ -10,7 +13,8 @@ export const shuffle = (items) => {
   return result;
 };
 
-export const buildQueue = (cards) => shuffle(cards.map((card) => card.id));
+export const buildQueue = (cards, size = SESSION_SIZE) =>
+  shuffle(cards.map((card) => card.id)).slice(0, size);
 
 // Отвеченная карточка уходит в конец очереди — сразу она не повторится
 export const advanceQueue = (queue, cardId) => [
@@ -19,5 +23,8 @@ export const advanceQueue = (queue, cardId) => [
 ];
 
 // Первая карточка очереди, которая ещё есть в словаре
-export const pickFromQueue = (queue, availableIds) =>
-  queue.find((id) => availableIds.includes(id)) ?? null;
+export const pickFromQueue = (queue, availableIds) => {
+  const available =
+    availableIds instanceof Set ? availableIds : new Set(availableIds);
+  return queue.find((id) => available.has(id)) ?? null;
+};

@@ -1,242 +1,122 @@
-/* ===== ХРАНИЛИЩЕ КАРТОЧЕК ===== */
-.storage-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80vh;
-  width: 100%;
-  padding: 1rem;
-}
+/* ===== ХРАНИЛИЩЕ ===== */
 
-.storage-container {
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(16px);
-  border-radius: 2rem;
-  padding: 2rem;
-  max-width: 1300px;
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.4);
-}
-
-.storage-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.storage-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #ffffff, #94a3f8);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  margin-bottom: 0.25rem;
-}
-
-.storage-subtitle {
-  color: #94a3b8;
-  font-size: 0.9rem;
-}
-
-.storage-count {
-  color: #3b82f6;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.storage-search {
-  position: relative;
-  margin-bottom: 2rem;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.storage-search-input {
-  width: 100%;
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 3rem;
-  padding: 0.85rem 1.5rem;
-  color: white;
-  font-size: 0.95rem;
-  transition: all 0.2s;
-}
-
-.storage-search-input:focus {
-  border-color: #3b82f6;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-.search-clear {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  font-size: 1.1rem;
-  padding: 0;
-  width: auto;
-  height: auto;
-  box-shadow: none;
-}
-
-.search-clear:hover {
-  color: white;
-  background: none;
-  transform: translateY(-50%);
-}
-
-.storage-table-wrapper {
-  overflow-x: auto;
-  border-radius: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.storage-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 1.5rem;
-}
-
-.storage-table thead tr {
-  background: #1e293b;
-  border-bottom: 1px solid #334155;
-}
-
-.storage-table th {
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: #cbd5e1;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.storage-table td {
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid #1e293b;
-  color: #e2e8f0;
-}
-
-.storage-image-cell {
-  width: 60px;
-  text-align: center;
-}
-
-.storage-image {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 0.75rem;
-  border: 1px solid #3b82f6;
-}
-
-.storage-image-placeholder {
-  width: 48px;
-  height: 48px;
-  background: #0f172a;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
+.page {
+  max-width: var(--page-max);
   margin: 0 auto;
+  padding: var(--space-8) var(--page-gutter);
 }
 
-.storage-english {
-  font-weight: 600;
-  color: white;
-}
-
-.storage-russian {
-  color: #cbd5e1;
-}
-
-.storage-count-badge {
-  display: inline-block;
-  background: #3b82f6;
-  color: white;
-  font-weight: 700;
-  font-size: 0.8rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 2rem;
-  min-width: 36px;
-  text-align: center;
-}
-
-.storage-delete-btn {
-  background: #e63946;
-  border: none;
-  border-radius: 2rem;
-  padding: 0.4rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.2s;
-  color: white;
-  box-shadow: none;
-}
-
-.storage-delete-btn:hover {
-  background: #c82333;
-  transform: translateY(-2px);
-}
-
-.storage-empty {
-  text-align: center;
-  padding: 3rem !important;
-  color: #64748b;
-  font-size: 1rem;
-}
-
-.storage-actions {
+/* Заголовок */
+.header {
   display: flex;
-  justify-content: center;
-  margin-top: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap-inline);
+  flex-wrap: wrap;
+  margin-bottom: var(--gap-stack);
 }
 
-.storage-back-btn {
-  background: #1e293b;
-  border: 1px solid #475569;
-  border-radius: 3rem;
-  padding: 0.7rem 2rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.2s;
+.headings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
-.storage-back-btn:hover {
-  background: #2d3a52;
-  border-color: #3b82f6;
-  transform: translateY(-2px);
+.title {
+  margin: 0;
+  color: var(--text-1);
+  font-size: var(--fs-32);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
 }
 
-@media (max-width: 768px) {
-  .storage-container {
-    padding: 1rem;
+.counter {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-14);
+}
+
+.counterValue {
+  color: var(--accent);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.total {
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--fs-14);
+}
+
+/* Панель поиска и фильтров */
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-inline);
+  margin-bottom: var(--gap-stack);
+}
+
+.searchRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  align-items: end;
+  gap: var(--gap-inline);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Сетка карточек */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--gap-inline);
+}
+
+/* Пагинация */
+.pager {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--gap-stack);
+}
+
+.pagerCount {
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--fs-14);
+}
+
+/* Мобильная версия */
+@media (max-width: 767px) {
+  .page {
+    padding: var(--space-6) var(--space-4);
   }
-  .storage-table th,
-  .storage-table td {
-    padding: 0.6rem 0.8rem;
-    font-size: 0.8rem;
+
+  .title {
+    font-size: var(--fs-24);
   }
-  .storage-image {
-    width: 36px;
-    height: 36px;
+
+  .searchRow {
+    grid-template-columns: 1fr;
   }
-  .storage-delete-btn {
-    padding: 0.3rem 0.8rem;
-    font-size: 0.7rem;
+
+  .headerAction {
+    width: 100%;
   }
-  .storage-title {
-    font-size: 1.4rem;
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chips {
+    gap: var(--space-1);
   }
 }

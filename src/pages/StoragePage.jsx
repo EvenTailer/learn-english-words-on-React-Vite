@@ -1,124 +1,234 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
+import { selectProgressMap } from '../features/progress/selectors';
+import { wordRemoved } from '../features/progress/progressSlice';
+import { toastShown } from '../features/ui/toastSlice';
+import { filterCards, sortCards } from '../features/words/filtering';
 import { selectCards } from '../features/words/selectors';
 import { cardDeleted } from '../features/words/wordsSlice';
+import { speak } from '../shared/lib/speech';
+import Button from '../shared/ui/Button';
+import Chip from '../shared/ui/Chip';
+import ConfirmDialog from '../shared/ui/ConfirmDialog';
+import EmptyState from '../shared/ui/EmptyState';
+import Icon from '../shared/ui/Icon';
+import SearchField from '../shared/ui/SearchField';
+import Select from '../shared/ui/Select';
+import WordCard from '../widgets/WordCard/WordCard';
 import styles from './StoragePage.module.css';
+
+// Сколько карточек показываем за раз — словарь бывает на 2000+ слов
+const PAGE_SIZE = 60;
+
+const SORT_OPTIONS = [
+  { value: 'az-en', label: 'По алфавиту (EN)' },
+  { value: 'az-ru', label: 'По алфавиту (RU)' },
+  { value: 'progress', label: 'По прогрессу' },
+  { value: 'new', label: 'Сначала новые' },
+];
+
+const FILTERS = [
+  { value: 'all', label: 'Все' },
+  { value: 'mastered', label: 'Изученные' },
+  { value: 'new', label: 'Новые' },
+];
 
 export default function StoragePage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const cards = useAppSelector(selectCards);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const query = searchTerm.trim().toLowerCase();
-  const filteredWords =
-    query === ''
-      ? cards
-      : cards.filter(
-          (card) =>
-            card.englishWord.toLowerCase().includes(query) ||
-            card.russianWord.toLowerCase().includes(query)
-        );
+  const cards = useAppSelector(selectCards);
+  const progressMap = useAppSelector(selectProgressMap);
+
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('az-en');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+  const filtered = useMemo(
+    () => filterCards(cards, { query, status, progressMap }),
+    [cards, query, status, progressMap]
+  );
+
+  const sorted = useMemo(
+    () => sortCards(filtered, sortBy, progressMap),
+    [filtered, sortBy, progressMap]
+  );
+
+  const visible = useMemo(
+    () => sorted.slice(0, visibleCount),
+    [sorted, visibleCount]
+  );
+
+  const pendingCard = useMemo(
+    () => cards.find((card) => card.id === pendingDeleteId) ?? null,
+    [cards, pendingDeleteId]
+  );
+
+  // Любое изменение выборки возвращает пагинацию на первую страницу
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleStatusChange = (value) => {
+    setStatus(value);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleSortChange = (value) => {
+    setSortBy(value);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleResetFilters = () => {
+    setQuery('');
+    setStatus('all');
+    setSortBy('az-en');
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!pendingCard) return;
+
+    dispatch(cardDeleted(pendingCard.id));
+    dispatch(
+      wordRemoved({
+        key: String(pendingCard.englishWord ?? '').trim().toLowerCase(),
+      })
+    );
+    dispatch(toastShown({ message: 'Слово удалено', type: 'info' }));
+    setPendingDeleteId(null);
+  };
+
+  const isEmptyDictionary = cards.length === 0;
 
   return (
-    <div className={styles.storageScreen}>
-      <div className={styles.storageContainer}>
-        <div className={styles.storageHeader}>
-          <h2 className={styles.storageTitle}>📚 Хранилище слов</h2>
-          <p className={styles.storageSubtitle}>
-            Всего слов:{' '}
-            <span className={styles.storageCount}>{cards.length}</span>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headings}>
+          <h1 className={styles.title}>Хранилище</h1>
+          <p className={styles.counter}>
+            Показано{' '}
+            <span className={styles.counterValue}>{visible.length}</span> из{' '}
+            {sorted.length}
           </p>
+          <p className={styles.total}>Всего в словаре: {cards.length} слов</p>
         </div>
 
-        <div className={styles.storageSearch}>
-          <input
-            type="text"
-            className={styles.storageSearchInput}
-            placeholder="🔍 Поиск по английскому или русскому слову..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+        <Button
+          variant="primary"
+          onClick={() => navigate('/add')}
+          icon={<Icon name="plus" size={20} />}
+          className={styles.headerAction}
+        >
+          Добавить слово
+        </Button>
+      </header>
+
+      <div className={styles.toolbar}>
+        <div className={styles.searchRow}>
+          <SearchField
+            value={query}
+            onChange={handleQueryChange}
+            label="Поиск"
+            placeholder="Поиск по английскому или русскому слову"
           />
-          {searchTerm && (
-            <button
-              className={styles.searchClear}
-              onClick={() => setSearchTerm('')}
-            >
-              ✕
-            </button>
-          )}
+          <Select
+            label="Сортировка"
+            value={sortBy}
+            onChange={handleSortChange}
+            options={SORT_OPTIONS}
+            className={styles.sort}
+          />
         </div>
 
-        <div className={styles.storageTableWrapper}>
-          <table className={styles.storageTable}>
-            <thead>
-              <tr>
-                <th>№</th>
-                <th>Изображение</th>
-                <th>🇬🇧 Английский</th>
-                <th>🇷🇺 Русский</th>
-                <th>🎯 Счёт</th>
-                <th>⚙️ Действие</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredWords.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className={styles.storageEmpty}>
-                    📭 Слова не найдены
-                  </td>
-                </tr>
-              ) : (
-                filteredWords.map((card, index) => (
-                  <tr key={card.id}>
-                    <td>{index + 1}</td>
-                    <td className={styles.storageImageCell}>
-                      {card.linkImg ? (
-                        <img
-                          src={card.linkImg}
-                          alt={card.englishWord}
-                          className={styles.storageImage}
-                          title={card.imageSource || card.englishWord}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <div className={styles.storageImagePlaceholder}>🖼️</div>
-                      )}
-                    </td>
-                    <td className={styles.storageEnglish}>{card.englishWord}</td>
-                    <td className={styles.storageRussian}>{card.russianWord}</td>
-                    <td>
-                      <span className={styles.storageCountBadge}>
-                        {card.count}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className={styles.storageDeleteBtn}
-                        onClick={() => dispatch(cardDeleted(card.id))}
-                        title="Удалить карточку"
-                      >
-                        🗑️ Удалить
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className={styles.storageActions}>
-          <button
-            className={styles.storageBackBtn}
-            onClick={() => navigate('/')}
-          >
-            ← На главную
-          </button>
+        <div className={styles.chips} role="group" aria-label="Фильтр по статусу">
+          {FILTERS.map((filter) => (
+            <Chip
+              key={filter.value}
+              label={filter.label}
+              active={status === filter.value}
+              onClick={() => handleStatusChange(filter.value)}
+            />
+          ))}
         </div>
       </div>
+
+      {isEmptyDictionary ? (
+        <EmptyState
+          title="Словарь пуст"
+          description="Добавьте первое слово вручную или возьмите готовый набор."
+          icon={<Icon name="cards" size={32} />}
+          action={
+            <Button
+              variant="primary"
+              onClick={() => navigate('/add')}
+              icon={<Icon name="plus" size={20} />}
+            >
+              Добавить слово
+            </Button>
+          }
+        />
+      ) : sorted.length === 0 ? (
+        <EmptyState
+          title="Ничего не найдено"
+          description="Под выбранные условия не подошёл ни один слово. Измените запрос или сбросьте фильтры."
+          icon={<Icon name="search" size={32} />}
+          action={
+            <Button variant="secondary" onClick={handleResetFilters}>
+              Сбросить фильтры
+            </Button>
+          }
+        />
+      ) : (
+        <>
+          <div className={styles.grid}>
+            {visible.map((card) => {
+              const key = String(card.englishWord ?? '').trim().toLowerCase();
+              const progress = progressMap[key];
+
+              return (
+                <WordCard
+                  key={card.id}
+                  card={card}
+                  status={progress?.status ?? 'new'}
+                  correct={progress?.correct ?? card.count ?? 0}
+                  onSpeak={(word) => speak(word)}
+                  onDelete={() => setPendingDeleteId(card.id)}
+                />
+              );
+            })}
+          </div>
+
+          <div className={styles.pager}>
+            <p className={styles.pagerCount}>
+              Показано {visible.length} из {sorted.length}
+            </p>
+            {visible.length < sorted.length ? (
+              <Button
+                variant="secondary"
+                onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                icon={<Icon name="arrow-right" size={20} />}
+              >
+                Показать ещё {PAGE_SIZE}
+              </Button>
+            ) : null}
+          </div>
+        </>
+      )}
+
+      <ConfirmDialog
+        open={Boolean(pendingCard)}
+        title="Удалить слово?"
+        description={`«${pendingCard?.englishWord ?? ''}» будет удалён из словаря`}
+        confirmLabel="Удалить"
+        destructive
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

@@ -1,0 +1,149 @@
+/* ===== КНОПКА ===== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-base) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.button:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* Размеры: sm 44px, md 48px, lg 56px */
+.sm {
+  height: var(--tap-min);
+  padding: 0 var(--space-4);
+}
+
+.md {
+  height: var(--control-h-md);
+}
+
+.lg {
+  height: var(--control-h-lg);
+  padding: 0 var(--space-6);
+  font-size: var(--fs-18);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.content {
+  display: inline-block;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+/* Варианты */
+.primary {
+  background: var(--accent-solid);
+  color: var(--accent-on-solid);
+}
+
+.secondary {
+  background: var(--surface-2);
+  border-color: var(--border-control);
+  color: var(--text-1);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-1);
+}
+
+.danger {
+  background: var(--danger-solid);
+  color: var(--danger-on-solid);
+}
+
+.success {
+  background: var(--success-solid);
+  color: var(--success-on-solid);
+}
+
+/* Состояния вариантов */
+.primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-accent);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--veil-hover);
+}
+
+.ghost:active:not(:disabled) {
+  background: var(--veil-active);
+}
+
+.danger:hover:not(:disabled) {
+  box-shadow: var(--shadow-2);
+}
+
+.success:hover:not(:disabled) {
+  box-shadow: var(--shadow-2);
+}
+
+/* Спиннер загрузки — дуга в цвет текста кнопки */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  border-radius: var(--radius-pill);
+  animation: button-spin 800ms linear infinite;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:hover:not(:disabled),
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}

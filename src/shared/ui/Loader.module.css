@@ -1,28 +1,36 @@
-/* ===== ЗАГРУЗЧИК (СПИННЕР) ===== */
+/* ===== СПИННЕР ===== */
 .loader {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  min-height: 100vh;
+  gap: var(--space-4);
+  min-height: 60vh;
   width: 100%;
-  color: #cbd5e1;
-  font-size: 0.9rem;
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 4px solid rgba(59, 130, 246, 0.2);
-  border-top-color: #3b82f6;
-  border-right-color: #1d4ed8;
+  border: 3px solid var(--accent-soft);
+  border-top-color: var(--accent);
   animation: spin 0.8s linear infinite;
+}
+
+.label {
+  color: var(--text-3);
+  font-size: var(--fs-14);
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
   }
 }

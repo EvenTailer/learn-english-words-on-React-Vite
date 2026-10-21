@@ -1,47 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
-import { cardAdded } from '../features/words/wordsSlice';
-import { toastShown } from '../features/learn/learnSlice';
 import { lookupWord } from '../features/dictionary/dictionarySlice';
+import { wordAdded } from '../features/progress/progressSlice';
+import { toastShown } from '../features/ui/toastSlice';
+import { selectCards } from '../features/words/selectors';
+import { cardAdded } from '../features/words/wordsSlice';
 import { createId } from '../shared/lib/id';
-import { speak } from '../shared/lib/speech';
+import Button from '../shared/ui/Button';
+import Card from '../shared/ui/Card';
+import Icon from '../shared/ui/Icon';
+import Input from '../shared/ui/Input';
+import WordCard from '../widgets/WordCard/WordCard';
 import styles from './AddPage.module.css';
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 МБ
+const MAX_SUGGESTIONS = 5;
 
 export default function AddPage() {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+
+  const cards = useAppSelector(selectCards);
+  const lookupStatus = useAppSelector((state) => state.dictionary.status);
+
   const [englishWord, setEnglishWord] = useState('');
   const [russianWord, setRussianWord] = useState('');
   const [linkImg, setLinkImg] = useState('');
-  const [previewUrl, setPreviewUrl] = useState('');
   const [phonetic, setPhonetic] = useState('');
   const [definition, setDefinition] = useState('');
   const [imageSource, setImageSource] = useState('');
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [englishError, setEnglishError] = useState('');
+  const [russianError, setRussianError] = useState('');
+
+  const englishRef = useRef(null);
+  const russianRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const lookupStatus = useAppSelector((state) => state.dictionary.status);
-
-  // Результат поиска подставляем в форму
-  const handleLookup = async () => {
-    try {
-      const result = await dispatch(lookupWord(englishWord)).unwrap();
-      if (!result) return;
-      setRussianWord((prev) => prev || result.russianWord);
-      setLinkImg((prev) => prev || result.imageUrl);
-      setPhonetic(result.phonetic);
-      setDefinition(result.definition);
-      setImageSource(result.imageSource);
-    } catch (error) {
-      dispatch(
-        toastShown({ message: String(error), type: 'error' })
-      );
-    }
-  };
-
-  // Освобождаем временный URL превью
+  // Освобождаем объектный URL предпросмотра
   useEffect(
     () => () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -49,179 +45,282 @@ export default function AddPage() {
     [previewUrl]
   );
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // Живые подсказки из своего словаря: совпадение по префиксу, без сети
+  const suggestions = useMemo(() => {
+    const query = englishWord.trim().toLowerCase();
+    if (!query) return [];
 
-    if (!file.type.startsWith('image/')) {
-      dispatch(toastShown({ message: 'Это не изображение', type: 'error' }));
-      e.target.value = '';
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      dispatch(
-        toastShown({ message: 'Файл больше 2 МБ — возьмите картинку поменьше', type: 'error' })
-      );
-      e.target.value = '';
-      return;
-    }
-    setPreviewUrl(URL.createObjectURL(file));
+    return cards
+      .filter((card) => {
+        const word = String(card.englishWord ?? '').trim().toLowerCase();
+        return word.startsWith(query) && word !== query;
+      })
+      .slice(0, MAX_SUGGESTIONS);
+  }, [cards, englishWord]);
+
+  const handleEnglishChange = (value) => {
+    setEnglishWord(value);
+    if (englishError) setEnglishError('');
   };
 
-  const handleAddCard = async () => {
-    const en = englishWord.trim().toLowerCase();
-    const ru = russianWord.trim();
+  const handleRussianChange = (value) => {
+    setRussianWord(value);
+    if (russianError) setRussianError('');
+  };
 
-    if (!en) {
-      dispatch(
-        toastShown({ message: 'Вы не ввели английское слово', type: 'error' })
-      );
+  const handleSuggestion = (card) => {
+    setEnglishWord(card.englishWord);
+    setEnglishError('');
+    englishRef.current?.focus();
+  };
+
+  // Поиск перевода, транскрипции и картинки в открытом словаре
+  const handleLookup = () => {
+    const word = englishWord.trim();
+    if (!word) {
+      setEnglishError('Введите английское слово');
+      englishRef.current?.focus();
       return;
     }
-    if (!ru) {
-      dispatch(
-        toastShown({ message: 'Вы не ввели русское слово', type: 'error' })
-      );
+
+    dispatch(lookupWord(word))
+      .unwrap()
+      .then((result) => {
+        if (!result) return;
+        setRussianWord((prev) => (prev.trim() ? prev : result.russianWord ?? ''));
+        setPhonetic(result.phonetic ?? '');
+        setDefinition(result.definition ?? '');
+        setLinkImg((prev) => (prev.trim() ? prev : result.imageUrl ?? ''));
+        setImageSource(result.imageSource ?? '');
+      })
+      .catch((error) => {
+        dispatch(
+          toastShown({
+            message: String(error?.message ?? error),
+            type: 'error',
+          })
+        );
+      });
+  };
+
+  const handleFileChange = (event) => {
+    const selected = event.target.files?.[0];
+    event.target.value = '';
+    if (!selected) return;
+
+    if (!selected.type.startsWith('image/')) {
+      dispatch(toastShown({ message: 'Это не изображение', type: 'error' }));
+      return;
+    }
+    if (selected.size > MAX_FILE_SIZE) {
+      dispatch(toastShown({ message: 'Файл больше 2 МБ', type: 'error' }));
       return;
     }
 
+    setFile(selected);
+    setPreviewUrl(URL.createObjectURL(selected));
+  };
+
+  const resetForm = () => {
+    setEnglishWord('');
+    setRussianWord('');
+    setLinkImg('');
+    setPhonetic('');
+    setDefinition('');
+    setImageSource('');
+    setFile(null);
+    setPreviewUrl('');
+    setEnglishError('');
+    setRussianError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleSubmit = async () => {
+    const english = englishWord.trim();
+    const russian = russianWord.trim();
+
+    const nextEnglishError = english ? '' : 'Введите английское слово';
+    const nextRussianError = russian ? '' : 'Введите перевод';
+    setEnglishError(nextEnglishError);
+    setRussianError(nextRussianError);
+
+    if (nextEnglishError) {
+      englishRef.current?.focus();
+      return;
+    }
+    if (nextRussianError) {
+      russianRef.current?.focus();
+      return;
+    }
+
+    // Выбранный файл кладём в карточку как data-URL
     let image = linkImg.trim();
-    const file = fileInputRef.current?.files?.[0];
-    if (file) image = await fileToBase64(file);
+    if (file) {
+      try {
+        image = await fileToBase64(file);
+      } catch {
+        image = linkImg.trim();
+      }
+    }
 
     dispatch(
       cardAdded({
         id: createId(),
-        englishWord: en,
+        englishWord: english,
+        russianWord: russian,
         linkImg: image,
-        russianWord: ru,
         count: 0,
         phonetic,
         definition,
         imageSource,
       })
     );
+    dispatch(wordAdded({ englishWord: english, russianWord: russian }));
+    dispatch(toastShown({ message: 'Слово добавлено', type: 'success' }));
 
-    setEnglishWord('');
-    setRussianWord('');
-    setLinkImg('');
-    setPreviewUrl('');
-    setPhonetic('');
-    setDefinition('');
-    setImageSource('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    resetForm();
   };
 
   return (
-    <div className={styles.addScreen}>
-      <div className={styles.addCard}>
-        <h2 className={styles.addTitle}>✨ Добавить новую карточку</h2>
-        <p className={styles.addSubtitle}>
-          Заполните поля ниже, чтобы пополнить словарь
-        </p>
+    <div className={styles.page}>
+      <div className={styles.layout}>
+        <Card as="section" padding="lg" className={styles.formCard}>
+          <header className={styles.headings}>
+            <h1 className={styles.title}>Добавить слово</h1>
+            <p className={styles.subtitle}>
+              Слово попадёт в словарь и в тренажёр
+            </p>
+          </header>
 
-        <div className={styles.addForm}>
-          <div className={styles.inputGroup}>
-            <label className={styles.inputLabel} htmlFor="add-english">
-              🇬🇧 Английское слово
-            </label>
-            <input
-              id="add-english"
-              type="text"
-              className={styles.inputField}
-              placeholder="например: fantastic"
-              value={englishWord}
-              onChange={(e) => setEnglishWord(e.target.value)}
-            />
+          <div className={styles.form}>
             <div className={styles.lookupRow}>
-              <button
-                type="button"
-                className={styles.lookupBtn}
+              <Input
+                label="Английское слово"
+                value={englishWord}
+                onChange={handleEnglishChange}
+                placeholder="Например: fantastic"
+                error={englishError}
+                inputRef={englishRef}
+                required
+                autoComplete="off"
+              />
+              <Button
+                variant="secondary"
                 onClick={handleLookup}
-                disabled={lookupStatus === 'loading' || !englishWord.trim()}
-              >
-                {lookupStatus === 'loading' ? '⏳ Ищем…' : '🔍 Найти в словаре'}
-              </button>
-              <button
-                type="button"
-                className="speak-btn"
-                title="Произнести"
-                onClick={() => speak(englishWord.trim())}
+                loading={lookupStatus === 'loading'}
                 disabled={!englishWord.trim()}
+                icon={<Icon name="search" size={20} />}
+                className={styles.lookupButton}
               >
-                🔊
-              </button>
+                Найти в словаре
+              </Button>
             </div>
-            {phonetic && <p className={styles.lookupInfo}>{phonetic}</p>}
-            {definition && (
-              <p className={styles.lookupInfo}>
-                <em>{definition}</em>
-              </p>
-            )}
-          </div>
 
-          <div className={styles.inputGroup}>
-            <label className={styles.inputLabel} htmlFor="add-russian">
-              🇷🇺 Перевод
-            </label>
-            <input
-              id="add-russian"
-              type="text"
-              className={styles.inputField}
-              placeholder="например: фантастический"
+            {suggestions.length > 0 ? (
+              <ul className={styles.suggestions} aria-label="Подсказки из словаря">
+                {suggestions.map((card) => (
+                  <li key={card.id}>
+                    <button
+                      type="button"
+                      className={styles.suggestion}
+                      onClick={() => handleSuggestion(card)}
+                    >
+                      <Icon name="search" size={16} />
+                      <span className={styles.suggestionEn}>
+                        {card.englishWord}
+                      </span>
+                      <span className={styles.suggestionRu}>
+                        {card.russianWord}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <Input
+              label="Перевод"
               value={russianWord}
-              onChange={(e) => setRussianWord(e.target.value)}
+              onChange={handleRussianChange}
+              placeholder="Например: фантастический"
+              error={russianError}
+              inputRef={russianRef}
+              required
+              autoComplete="off"
             />
-          </div>
 
-          <div className={styles.inputGroup}>
-            <label className={styles.inputLabel} htmlFor="add-image">
-              🖼️ Ссылка на картинку
-            </label>
-            <input
-              id="add-image"
-              type="text"
-              className={styles.inputField}
-              placeholder="https://... или загрузите файл ниже"
-              value={linkImg}
-              onChange={(e) => setLinkImg(e.target.value)}
-            />
-            {imageSource && (
-              <p className={styles.lookupInfo}>Источник картинки: {imageSource}</p>
-            )}
-          </div>
+            <div className={styles.imageBlock}>
+              <Input
+                label="Ссылка на картинку"
+                value={linkImg}
+                onChange={setLinkImg}
+                placeholder="https://... или загрузите файл"
+                autoComplete="off"
+              />
 
-          <div className={styles.fileArea}>
-            <button
-              type="button"
-              className={styles.fileBtn}
-              onClick={() => fileInputRef.current.click()}
-            >
-              📁 Выбрать картинку с компьютера
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-            {previewUrl && (
-              <div className={styles.imagePreview}>
-                <img src={previewUrl} alt="preview" />
+              <div className={styles.imageRow}>
+                <Button
+                  variant="secondary"
+                  onClick={() => fileInputRef.current?.click()}
+                  icon={<Icon name="upload" size={20} />}
+                >
+                  Выбрать файл
+                </Button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="visually-hidden"
+                  onChange={handleFileChange}
+                />
               </div>
-            )}
-          </div>
 
-          <div className={styles.addActions}>
-            <button className={styles.btnSubmit} onClick={handleAddCard}>
-              ➕ Добавить карточку
-            </button>
-            <button className={styles.btnBack} onClick={() => navigate('/')}>
-              ← Назад
-            </button>
+              {previewUrl ? (
+                <div className={styles.previewBox}>
+                  <img
+                    className={styles.previewImage}
+                    src={previewUrl}
+                    alt="Предпросмотр выбранного файла"
+                  />
+                </div>
+              ) : null}
+
+              {imageSource ? (
+                <p className={styles.imageSource}>Источник картинки: {imageSource}</p>
+              ) : null}
+            </div>
+
+            <div className={styles.actions}>
+              <Button
+                variant="primary"
+                onClick={handleSubmit}
+                icon={<Icon name="plus" size={20} />}
+              >
+                Добавить карточку
+              </Button>
+              <Button variant="ghost" onClick={resetForm}>
+                Очистить
+              </Button>
+            </div>
           </div>
-        </div>
+        </Card>
+
+        <aside className={styles.preview} aria-label="Предпросмотр карточки">
+          <h2 className={styles.previewTitle}>Предпросмотр</h2>
+          <WordCard
+            variant="preview"
+            status="new"
+            card={{
+              englishWord: englishWord.trim() || 'sunflower',
+              russianWord: russianWord.trim() || 'подсолнух',
+              linkImg: previewUrl || linkImg.trim(),
+              phonetic,
+              definition,
+              imageSource,
+            }}
+          />
+        </aside>
       </div>
     </div>
   );

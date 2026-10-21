@@ -1,0 +1,107 @@
+/* ===== ПОТОК СЛОВ ===== */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--gap-tight);
+}
+
+.cell {
+  min-width: 0;
+}
+
+.word {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-medium);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.word:hover {
+  transform: translateY(-1px);
+}
+
+.word:active {
+  transform: scale(0.98);
+}
+
+.wordText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dot {
+  flex: none;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+}
+
+/* Статусы из прогресса — цвет несёт смысл, точка дублирует его формой */
+.new {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.new .dot {
+  background: var(--accent-solid);
+}
+
+.learning {
+  background: var(--surface-2);
+  border-color: var(--border-subtle);
+  color: var(--text-3);
+}
+
+.learning .dot {
+  background: var(--text-3);
+}
+
+.mastered {
+  background: var(--success-soft);
+  border-color: var(--success-border);
+  color: var(--success);
+}
+
+.mastered .dot {
+  background: var(--success-solid);
+}
+
+.empty {
+  padding: var(--space-6) var(--space-2);
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap-tight);
+}
+
+@media (max-width: 480px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

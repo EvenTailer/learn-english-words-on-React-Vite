@@ -1,8 +1,7 @@
 import localforage from 'localforage';
 
-// Ключ хранения совпадает с тем, что использовала стая версия приложения
-// (redux-persist настроен с keyPrefix: '' и key: 'cards'),
-// поэтому словарь переживает миграцию без потери карточек.
+// Ключи хранения совпадают с теми, что использовала старая версия приложения
+// ('cards' для словаря), поэтому данные переживают миграцию на redux-persist.
 export const localforageStorage = {
   async getItem(key) {
     const raw = await localforage.getItem(key);

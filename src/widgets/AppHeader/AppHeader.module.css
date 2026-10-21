@@ -1,0 +1,119 @@
+/* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-3) var(--page-gutter);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--text-1);
+  font-weight: var(--fw-extrabold);
+  font-size: var(--fs-16);
+  letter-spacing: var(--ls-tight);
+  flex: none;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--accent-solid);
+  color: var(--accent-on-solid);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-caps);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  min-height: var(--tap-min);
+  border-radius: var(--radius-pill);
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  transition: background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.navLink:hover {
+  background: var(--veil-hover);
+  color: var(--text-1);
+}
+
+.navLinkActive {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: var(--fw-semibold);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.streak {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  min-height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--warning-soft);
+  border: 1px solid var(--warning-border);
+  color: var(--warning);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+}
+
+@media (max-width: 900px) {
+  .navLink span {
+    display: none;
+  }
+  .navLink {
+    padding: var(--space-2);
+  }
+}
+
+@media (max-width: 767px) {
+  .nav {
+    display: none;
+  }
+  .inner {
+    justify-content: space-between;
+  }
+  .brandText {
+    display: none;
+  }
+}

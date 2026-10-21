@@ -1,0 +1,122 @@
+/* ===== ПОЛЕ ВВОДА ===== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-tight);
+  width: 100%;
+}
+
+.label {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-wide);
+  color: var(--text-2);
+}
+
+.required {
+  color: var(--danger);
+}
+
+.control {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  height: var(--control-h-md);
+  padding: 0 var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: var(--fs-16);
+  line-height: var(--lh-normal);
+  transition: background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.input::placeholder {
+  color: var(--text-3);
+}
+
+.input:disabled {
+  background: var(--surface-1);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+
+.input[readonly] {
+  background: var(--surface-1);
+}
+
+/* Нативный крестик браузера в type="search" мешает нашей кнопке очистки */
+.input[type='search']::-webkit-search-cancel-button,
+.input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  display: inline-flex;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.controlWithIcon .input {
+  padding-left: var(--space-10);
+}
+
+.controlWithClear .input {
+  padding-right: calc(var(--tap-min) + var(--space-2));
+}
+
+.clear {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.clear:hover {
+  background: var(--veil-hover);
+  color: var(--text-1);
+}
+
+.controlError .input {
+  border-color: var(--danger);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: var(--lh-normal);
+  color: var(--text-3);
+}
+
+.error {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: var(--lh-normal);
+  color: var(--danger);
+}

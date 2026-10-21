@@ -1,0 +1,59 @@
+/* ===== ЗАГЛУШКА ЗАГРУЗКИ ===== */
+
+.skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-radius: var(--radius-xs);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--surface-3), transparent);
+  animation: skeleton-shimmer 1200ms linear infinite;
+}
+
+/* Варианты */
+.text {
+  width: 100%;
+  height: 1em;
+}
+
+.circle {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+  border-radius: var(--radius-pill);
+}
+
+.rect {
+  width: 100%;
+  height: var(--space-10);
+  border-radius: var(--radius-md);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(200%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    display: none;
+  }
+}

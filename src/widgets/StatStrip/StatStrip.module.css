@@ -1,0 +1,27 @@
+/* ===== ПОЛОСА МЕТРИК ===== */
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap-inline);
+}
+
+.item {
+  min-width: 0;
+}
+
+/* Мобильная версия — горизонтальная прокрутка вместо сжатых плиток */
+@media (max-width: 767px) {
+  .strip {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 1fr);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: var(--space-2);
+  }
+
+  .item {
+    scroll-snap-align: start;
+  }
+}

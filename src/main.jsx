@@ -7,7 +7,7 @@ import { RouterProvider } from 'react-router-dom';
 import { store } from './app/store';
 import { router } from './app/router';
 import Loader from './shared/ui/Loader';
-import './styles/global.css';
+import './styles/tokens.css';
 
 const persistor = persistStore(store);
 

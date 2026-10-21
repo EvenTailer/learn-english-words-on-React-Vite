@@ -1,0 +1,65 @@
+/* ===== НИЖНЯЯ НАВИГАЦИЯ (мобильная) ===== */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-header);
+  height: calc(var(--bottom-nav-height, 68px) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  align-items: stretch;
+  justify-content: space-around;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--glass-border);
+}
+
+.item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  color: var(--text-3);
+  text-decoration: none;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.item-active {
+  color: var(--accent);
+}
+
+.fab {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-top: -20px;
+  border-radius: 50%;
+  background: var(--accent-solid);
+  color: var(--accent-on-solid);
+  box-shadow: var(--shadow-accent);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.fab:hover {
+  transform: translateY(-2px);
+}
+
+.fab-active {
+  box-shadow: var(--shadow-accent), 0 0 0 3px var(--accent-soft);
+}
+
+@media (max-width: 767px) {
+  .bottom-nav {
+    display: flex;
+  }
+}

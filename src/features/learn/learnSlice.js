@@ -7,7 +7,7 @@ const initialState = {
   queue: [], // очередь id карточек
   revealed: false, // пользователь нажал «Показать ответ»
   finished: false,
-  toast: { message: '', type: '' },
+  session: { total: 0, answered: 0, correct: 0, wrong: 0, skipped: 0, learned: 0 },
 };
 
 const learnSlice = createSlice({
@@ -28,11 +28,20 @@ const learnSlice = createSlice({
     answerRevealed(state) {
       state.revealed = true;
     },
-    toastShown(state, action) {
-      state.toast = action.payload;
+    sessionReset(state, action) {
+      state.session = {
+        total: action.payload?.total ?? 0,
+        answered: 0,
+        correct: 0,
+        wrong: 0,
+        skipped: 0,
+        learned: 0,
+      };
     },
-    toastHidden(state) {
-      state.toast = { message: '', type: '' };
+    sessionStatAdded(state, action) {
+      const { kind, value = 1 } = action.payload;
+      if (kind === 'answered') state.session.answered += value;
+      else if (kind in state.session) state.session[kind] += value;
     },
     learnFinished(state) {
       state.currentCardId = null;
@@ -49,8 +58,8 @@ export const {
   learnStarted,
   answerChanged,
   answerRevealed,
-  toastShown,
-  toastHidden,
+  sessionReset,
+  sessionStatAdded,
   learnFinished,
 } = learnSlice.actions;
 

@@ -1,0 +1,131 @@
+/* ===== КАРТОЧКА УЧЕБНОГО СЛОВА ===== */
+
+.shell {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Подсветка результата ответа — рамка и подложка */
+.shell.correct {
+  border-color: var(--success-border);
+  background: var(--success-soft);
+}
+
+.shell.wrong {
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.media {
+  width: 220px;
+  height: 220px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-3);
+}
+
+.wordBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.word {
+  margin: 0;
+  font-size: var(--fs-40);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.phonetic {
+  font-family: var(--font-mono);
+  font-size: var(--fs-16);
+  line-height: var(--lh-relaxed);
+  color: var(--text-3);
+}
+
+.reveal {
+  margin: 0;
+  font-size: var(--fs-16);
+  line-height: var(--lh-normal);
+  color: var(--text-2);
+}
+
+.reveal strong {
+  color: var(--text-1);
+}
+
+.form {
+  width: 100%;
+}
+
+.actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-inline);
+}
+
+.secondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap-inline);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: var(--lh-normal);
+  color: var(--text-3);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .media {
+    width: 160px;
+    height: 160px;
+  }
+
+  .word {
+    font-size: var(--fs-32);
+  }
+}

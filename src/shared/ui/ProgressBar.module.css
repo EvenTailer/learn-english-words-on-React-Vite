@@ -1,0 +1,62 @@
+/* ===== ПОЛОСА ПРОГРЕССА ===== */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-tight);
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.label {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  color: var(--text-2);
+}
+
+.value {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.track {
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface-3);
+  border-radius: var(--radius-pill);
+}
+
+/* Размеры: sm 6px, md 10px */
+.sm {
+  height: 6px;
+}
+
+.md {
+  height: 10px;
+}
+
+.fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.accent {
+  background: var(--accent-solid);
+}
+
+.success {
+  background: var(--success-solid);
+}
+
+.danger {
+  background: var(--danger-solid);
+}

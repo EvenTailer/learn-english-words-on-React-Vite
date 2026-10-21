@@ -1,6 +1,10 @@
-import { configureStore } from '@reduxjs/toolkit';
+﻿import { configureStore } from '@reduxjs/toolkit';
 import { describe, expect, it } from 'vitest';
 import cardsReducer from '../words/wordsSlice';
+import progressReducer, { wordAnswered } from '../progress/progressSlice';
+import settingsReducer from '../settings/settingsSlice';
+import statsReducer from '../stats/statsSlice';
+import uiReducer from '../ui/toastSlice';
 import learnReducer, { answerChanged, learnStarted } from './learnSlice';
 import { checkAnswer, revealAnswer, skipCard, startLearn } from './learnThunks';
 
@@ -22,10 +26,17 @@ const CARDS = [
   },
 ];
 
-const makeStore = (items = CARDS) =>
+const makeStore = (items = CARDS, settings = { theme: 'dark', dailyGoal: 20, direction: 'mixed' }) =>
   configureStore({
-    reducer: { cards: cardsReducer, learn: learnReducer },
-    preloadedState: { cards: { items } },
+    reducer: {
+      cards: cardsReducer,
+      learn: learnReducer,
+      progress: progressReducer,
+      stats: statsReducer,
+      ui: uiReducer,
+      settings: settingsReducer,
+    },
+    preloadedState: { cards: { items }, settings },
   });
 
 const currentCardOf = (store) =>
@@ -58,6 +69,16 @@ describe('startLearn', () => {
     store.dispatch(startLearn());
     expect(store.getState().learn.finished).toBe(true);
   });
+
+  it('уважает выбранное направление перевода', () => {
+    const store = makeStore(CARDS, {
+      theme: 'dark',
+      dailyGoal: 20,
+      direction: 'ru-en',
+    });
+    store.dispatch(startLearn());
+    expect(store.getState().learn.mode).toBe('rus');
+  });
 });
 
 describe('checkAnswer', () => {
@@ -70,7 +91,8 @@ describe('checkAnswer', () => {
 
     expect(store.getState().learn.currentCardId).toBe(before);
     expect(store.getState().cards.items[0].count).toBe(0);
-    expect(store.getState().learn.toast.type).toBe('error');
+    expect(store.getState().ui.toast.type).toBe('error');
+    expect(store.getState().learn.session.wrong).toBe(1);
   });
 
   it('при верном ответе увеличивает счётчик и меняет карточку', () => {
@@ -86,6 +108,7 @@ describe('checkAnswer', () => {
       .cards.items.find((item) => item.id === card.id);
     expect(answered.count).toBe(1);
     expect(store.getState().learn.currentCardId).not.toBe(before);
+    expect(store.getState().learn.session.correct).toBe(1);
   });
 
   it('принимает вариант ответа из карточки', () => {
@@ -111,13 +134,19 @@ describe('checkAnswer', () => {
     const store = makeStore();
     store.dispatch(startLearn());
     answer(store, '   ');
-    expect(store.getState().learn.toast.message).toBe('Вы ничего не ответили');
+    expect(store.getState().ui.toast.message).toBe('Вы ничего не ответили');
     expect(store.getState().cards.items[0].count).toBe(0);
   });
 
-  it('на пятом правильном ответе удаляет карточку', () => {
+  it('на пятом правильном ответе помечает слово изученным, но не удаляет его', () => {
     const store = makeStore([
-      { id: 'a', englishWord: 'lion', russianWord: 'лев', linkImg: '', count: 4 },
+      {
+        id: 'a',
+        englishWord: 'lion',
+        russianWord: 'лев',
+        linkImg: '',
+        count: 4,
+      },
       {
         id: 'b',
         englishWord: 'monkey',
@@ -128,21 +157,39 @@ describe('checkAnswer', () => {
     ]);
     store.dispatch(startLearn());
     const card = currentCardOf(store);
-    const answerValue = correctAnswerFor(store);
 
-    store.dispatch(answerChanged(answerValue));
-    store.dispatch(checkAnswer());
+    answer(store, correctAnswerFor(store));
 
-    expect(store.getState().cards.items.map((c) => c.id)).not.toContain(card.id);
+    const items = store.getState().cards.items;
+    expect(items.map((c) => c.id)).toContain(card.id);
+
+    const progress = store.getState().progress.words[card.englishWord];
+    expect(progress.status).toBe('mastered');
+    expect(progress.correct).toBe(5);
+    expect(store.getState().learn.session.learned).toBe(1);
   });
 
-  it('завершает сессию, когда карточек не осталось', () => {
-    const store = makeStore([
-      { id: 'a', englishWord: 'lion', russianWord: 'лев', linkImg: '', count: 4 },
-    ]);
+  it('выученное слово не попадает в новую сессию', () => {
+    const store = makeStore(CARDS, {
+      theme: 'dark',
+      dailyGoal: 20,
+      direction: 'en-ru',
+    });
     store.dispatch(startLearn());
-    answer(store, correctAnswerFor(store));
-    expect(store.getState().learn.finished).toBe(true);
+    const card = currentCardOf(store);
+
+    // помечаем слово изученным
+    store.dispatch(
+      wordAnswered({
+        englishWord: card.englishWord,
+        russianWord: card.russianWord,
+        correct: true,
+        count: 5,
+      })
+    );
+
+    store.dispatch(startLearn());
+    expect(store.getState().learn.queue).not.toContain(card.id);
   });
 });
 
@@ -156,6 +203,7 @@ describe('skipCard', () => {
 
     expect(store.getState().learn.currentCardId).not.toBe(before);
     expect(store.getState().cards.items[0].count).toBe(0);
+    expect(store.getState().learn.session.skipped).toBe(1);
   });
 });
 
@@ -169,6 +217,6 @@ describe('revealAnswer', () => {
 
     expect(store.getState().learn.revealed).toBe(true);
     expect(store.getState().learn.currentCardId).toBe(before);
-    expect(store.getState().learn.toast.type).toBe('info');
+    expect(store.getState().ui.toast.type).toBe('info');
   });
 });

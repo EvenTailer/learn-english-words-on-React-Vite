@@ -36,6 +36,15 @@ const wordsSlice = createSlice({
   initialState,
   reducers: {
     cardAdded(state, action) {
+      const key = String(action.payload.englishWord ?? '')
+        .trim()
+        .toLowerCase();
+      if (!key) return;
+      // одно слово — одна карточка
+      const exists = state.items.some(
+        (card) => String(card.englishWord ?? '').trim().toLowerCase() === key
+      );
+      if (exists) return;
       state.items.push(action.payload);
     },
     cardDeleted(state, action) {

@@ -1,113 +1,113 @@
-/* ===== СТАРТОВЫЙ ЭКРАН (три кнопки) ===== */
-.start-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80vh;
+/* ===== ГЛАВНАЯ ===== */
+
+.page {
   width: 100%;
-}
-
-.start-card {
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(16px);
-  border-radius: 3rem;
-  padding: 3rem 2.5rem;
-  text-align: center;
-  max-width: 600px;
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.4);
-  transition: transform 0.2s;
-}
-
-.start-card:hover {
-  transform: scale(1.01);
-  border-color: rgba(59, 130, 246, 0.4);
-}
-
-.start-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #ffffff, #94a3f8);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  margin-bottom: 0.5rem;
-}
-
-.start-subtitle {
-  color: #cbd5e1;
-  margin-bottom: 2.5rem;
-  font-size: 1rem;
-}
-
-.start-buttons {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-6) var(--page-gutter);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  width: 100%;
+  gap: var(--gap-stack);
 }
 
-.start-btn {
-  padding: 1rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 60px;
-  transition: all 0.25s;
-  cursor: pointer;
-  border: none;
-  background: #1e293b;
-  color: #e2e8f0;
+.hero {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-32);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-1);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--fs-18);
+  line-height: var(--lh-normal);
+  color: var(--text-2);
+}
+
+/* Главный CTA + две второстепенные кнопки */
+.cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-inline);
+}
+
+.ctaSecondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap-inline);
+}
+
+/* Две колонки: цель слева, поток слов справа */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: var(--gap-stack);
+  align-items: start;
+}
+
+.goalCard {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  gap: var(--space-4);
+  text-align: center;
 }
 
-.start-btn.learn {
-  background: linear-gradient(105deg, #3b82f6, #1d4ed8);
-  color: white;
-  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+.flowCard {
+  display: flex;
+  flex-direction: column;
 }
 
-.start-btn.learn:hover {
-  transform: translateY(-2px);
-  background: #2563eb;
-  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
+.sectionTitle {
+  margin: 0 0 var(--space-4);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  color: var(--text-1);
 }
 
-.start-btn.add {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.settingsCard {
+  display: flex;
+  flex-direction: column;
 }
 
-.start-btn.add:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: #3b82f6;
-  transform: translateY(-2px);
+.record {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-14);
+  line-height: var(--lh-normal);
+  color: var(--text-3);
 }
 
-.start-btn.storage {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.start-btn.storage:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-/* Адаптив для телефонов */
-@media (max-width: 550px) {
-  .start-card {
-    padding: 2rem 1.5rem;
-    margin: 1rem;
+/* Мобильная раскладка — вертикальные карточки и кнопки во всю ширину */
+@media (max-width: 900px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .start-title {
-    font-size: 1.8rem;
+}
+
+@media (max-width: 767px) {
+  .page {
+    padding: var(--space-5) var(--page-gutter);
+    gap: var(--space-5);
   }
-  .start-btn {
-    font-size: 1rem;
-    padding: 0.8rem 1rem;
+
+  .title {
+    font-size: var(--fs-24);
+  }
+
+  .subtitle {
+    font-size: var(--fs-16);
+  }
+
+  .ctaSecondary {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

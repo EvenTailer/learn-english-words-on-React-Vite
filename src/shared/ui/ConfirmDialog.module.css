@@ -1,0 +1,8 @@
+/* ===== ДИАЛОГ ПОДТВЕРЖДЕНИЯ ===== */
+
+.description {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-16);
+  line-height: var(--lh-normal);
+}

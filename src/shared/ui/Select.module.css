@@ -1,0 +1,68 @@
+/* ===== ВЫПАДАЮЩИЙ СПИСОК ===== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-tight);
+  width: 100%;
+}
+
+.label {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-wide);
+  color: var(--text-2);
+}
+
+.control {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.select {
+  width: 100%;
+  height: var(--control-h-md);
+  padding: 0 calc(var(--space-8) + var(--space-2)) 0 var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: var(--fs-16);
+  line-height: var(--lh-normal);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.select:disabled {
+  background: var(--surface-1);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+
+.select option {
+  background: var(--surface-3);
+  color: var(--text-1);
+}
+
+.chevron {
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  display: inline-flex;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: var(--lh-normal);
+  color: var(--text-3);
+}
