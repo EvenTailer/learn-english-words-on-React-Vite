@@ -84,6 +84,9 @@ export default function HomePage() {
         >
           Учить слова
         </Button>
+        <p className={styles.ctaHint}>
+          Выберете набор, формат ответа и размер — и начнём
+        </p>
 
         <div className={styles.ctaSecondary}>
           <Button

@@ -45,6 +45,15 @@
   gap: var(--gap-inline);
 }
 
+/* Подсказка под главной кнопкой: что будет дальше */
+.ctaHint {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--lh-relaxed);
+  color: var(--text-3);
+  text-align: center;
+}
+
 /* Две колонки: цель слева, поток слов справа */
 .columns {
   display: grid;

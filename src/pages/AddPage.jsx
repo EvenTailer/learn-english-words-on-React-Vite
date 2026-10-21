@@ -200,6 +200,18 @@ export default function AddPage() {
       }
     }
 
+    // Слово уже есть — не добавляем второй раз
+    const exists = cards.some(
+      (card) =>
+        String(card.englishWord ?? '').trim().toLowerCase() === english.toLowerCase()
+    );
+    if (exists) {
+      dispatch(
+        toastShown({ message: 'Слово уже в словаре', type: 'info' })
+      );
+      return;
+    }
+
     dispatch(
       cardAdded({
         id: createId(),

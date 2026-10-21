@@ -183,7 +183,7 @@ export default function StoragePage() {
       ) : sorted.length === 0 ? (
         <EmptyState
           title="Ничего не найдено"
-          description="Под выбранные условия не подошёл ни один слово. Измените запрос или сбросьте фильтры."
+          description="Ничего не найдено. Измените запрос или сбросьте фильтры."
           icon={<Icon name="search" size={32} />}
           action={
             <Button variant="secondary" onClick={handleResetFilters}>

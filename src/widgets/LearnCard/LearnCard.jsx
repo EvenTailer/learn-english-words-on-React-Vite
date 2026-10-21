@@ -225,7 +225,11 @@ export default function LearnCard({
           </Button>
         </div>
 
-        <p className={styles.hint}>Enter — проверить</p>
+        <p className={styles.hint}>
+          {isChoice
+            ? 'Выберите перевод и нажмите «Проверить»'
+            : 'Впишите перевод и нажмите «Проверить»'}
+        </p>
       </div>
     </Card>
   );

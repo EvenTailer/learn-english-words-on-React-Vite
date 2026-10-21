@@ -124,7 +124,7 @@ export const checkAnswer = () => (dispatch, getState) => {
     dispatch(sessionStatAdded({ kind: 'wrong' }));
     dispatch(
       toastShown({
-        message: `Неправильно! Правильный ответ: ${correct}`,
+        message: `Неверно. Правильный ответ: ${correct}`,
         type: 'error',
       })
     );
