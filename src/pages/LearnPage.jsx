@@ -1,9 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
-import { selectCards, selectCurrentCard } from '../features/words/selectors';
+import { selectCards } from '../features/words/selectors';
 import { answerChanged } from '../features/learn/learnSlice';
-import { checkAnswer, startLearn } from '../features/learn/learnThunks';
+import {
+  checkAnswer,
+  revealAnswer,
+  skipCard,
+  startLearn,
+} from '../features/learn/learnThunks';
+import {
+  selectCurrentCard,
+  selectIsRevealed,
+  selectLearnMode,
+} from '../features/learn/selectors';
 import styles from './LearnPage.module.css';
 
 export default function LearnPage() {
@@ -11,8 +21,9 @@ export default function LearnPage() {
   const navigate = useNavigate();
   const cards = useAppSelector(selectCards);
   const currentCard = useAppSelector(selectCurrentCard);
-  const mode = useAppSelector((state) => state.learn.mode);
+  const mode = useAppSelector(selectLearnMode);
   const answer = useAppSelector((state) => state.learn.answer);
+  const revealed = useAppSelector(selectIsRevealed);
   const finished = useAppSelector((state) => state.learn.finished);
   const inputRef = useRef(null);
 
@@ -27,6 +38,14 @@ export default function LearnPage() {
   useEffect(() => {
     if (currentCard) inputRef.current?.focus();
   }, [currentCard]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') navigate('/');
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [navigate]);
 
   if (cards.length === 0) {
     return (
@@ -50,6 +69,9 @@ export default function LearnPage() {
   const question = showEnglish
     ? currentCard.englishWord
     : currentCard.russianWord;
+  const correctAnswer = showEnglish
+    ? currentCard.russianWord
+    : currentCard.englishWord;
 
   return (
     <div className={styles.learnScreen}>
@@ -63,7 +85,7 @@ export default function LearnPage() {
             {currentCard.linkImg ? (
               <img
                 src={currentCard.linkImg}
-                alt={currentCard.englishWord}
+                alt="Иллюстрация"
                 className={styles.learnImage}
                 loading="lazy"
                 decoding="async"
@@ -81,10 +103,19 @@ export default function LearnPage() {
               {showEnglish ? '🇬🇧 ENGLISH' : '🇷🇺 RUSSIAN'}
             </span>
             <h2 className={styles.learnWord}>{question}</h2>
+            {revealed && (
+              <p className={styles.learnReveal}>
+                Правильный ответ: <strong>{correctAnswer}</strong>
+              </p>
+            )}
           </div>
 
           <div className={styles.learnInputArea}>
+            <label className={styles.visuallyHidden} htmlFor="learn-answer">
+              Ваш ответ
+            </label>
             <input
+              id="learn-answer"
               ref={inputRef}
               type="text"
               className={styles.learnInput}
@@ -93,17 +124,43 @@ export default function LearnPage() {
               onChange={(e) => dispatch(answerChanged(e.target.value))}
               onKeyDown={(e) => e.key === 'Enter' && dispatch(checkAnswer())}
               autoComplete="off"
+              disabled={revealed}
             />
+            {revealed ? (
+              <button
+                className={styles.learnCheckBtn}
+                onClick={() => dispatch(skipCard())}
+              >
+                Дальше →
+              </button>
+            ) : (
+              <button
+                className={styles.learnCheckBtn}
+                onClick={() => dispatch(checkAnswer())}
+              >
+                ✅ Проверить
+              </button>
+            )}
+          </div>
+
+          <div className={styles.learnActions}>
             <button
-              className={styles.learnCheckBtn}
-              onClick={() => dispatch(checkAnswer())}
+              className={styles.learnSecondaryBtn}
+              onClick={() => dispatch(revealAnswer())}
+              disabled={revealed}
             >
-              ✅ Проверить
+              💡 Показать ответ
+            </button>
+            <button
+              className={styles.learnSecondaryBtn}
+              onClick={() => dispatch(skipCard())}
+            >
+              ⏭ Пропустить
             </button>
           </div>
 
           <div className={styles.learnHint}>
-            <span>💡 Нажми Enter или кнопку «Проверить»</span>
+            <span>💡 Нажми Enter или кнопку «Проверить», Esc — выход</span>
           </div>
         </div>
       </div>

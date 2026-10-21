@@ -1,80 +1,113 @@
+import { isAnswerMatch } from '../../shared/lib/answerNormalizer';
 import { selectCards } from '../words/selectors';
 import { cardCountIncremented, cardRemoved } from '../words/wordsSlice';
-import { learnFinished, learnStarted, toastShown } from './learnSlice';
+import { answerRevealed, learnFinished, learnStarted, toastShown } from './learnSlice';
+import { advanceQueue, buildQueue, pickFromQueue } from './session';
 
 const randomMode = () => (Math.random() < 0.5 ? 'eng' : 'rus');
 
-// Случайная карточка, кроме текущей (если есть из чего выбирать)
-const pickNextCard = (items, excludeId) => {
-  if (items.length === 0) return null;
-  const pool =
-    items.length > 1 ? items.filter((card) => card.id !== excludeId) : items;
-  return pool[Math.floor(Math.random() * pool.length)];
-};
+const correctAnswerOf = (card, mode) =>
+  mode === 'eng' ? card.russianWord : card.englishWord;
 
 export const startLearn = () => (dispatch, getState) => {
   const items = selectCards(getState());
-  const card = pickNextCard(items, null);
-  if (!card) {
+  if (items.length === 0) {
     dispatch(learnFinished());
     return;
   }
-  dispatch(learnStarted({ id: card.id, mode: randomMode() }));
+  const queue = buildQueue(items);
+  dispatch(learnStarted({ id: queue[0], mode: randomMode(), queue }));
 };
 
 export const checkAnswer = () => (dispatch, getState) => {
   const state = getState();
+  const { currentCardId, mode, answer, queue } = state.learn;
   const items = selectCards(state);
-  const card = items.find((item) => item.id === state.learn.currentCardId);
+  const card = items.find((item) => item.id === currentCardId);
   if (!card) return;
 
-  const answer = state.learn.answer.trim().toLowerCase();
-  const correct =
-    state.learn.mode === 'eng'
-      ? card.russianWord.toLowerCase()
-      : card.englishWord.toLowerCase();
-
-  if (answer === '') {
+  if (answer.trim() === '') {
     dispatch(toastShown({ message: 'Вы ничего не ответили', type: 'error' }));
     return;
   }
 
-  if (answer === correct) {
-    // Пятый правильный ответ — карточка изучена и удаляется
-    if (card.count >= 4) {
-      dispatch(cardRemoved(card.id));
-      const left = items.filter((item) => item.id !== card.id);
-      if (left.length === 0) {
-        dispatch(learnFinished());
-        dispatch(
-          toastShown({ message: 'Карточки закончились 🎉', type: 'success' })
-        );
-        return;
-      }
-      const next = pickNextCard(left, card.id);
-      dispatch(learnStarted({ id: next.id, mode: randomMode() }));
-      dispatch(
-        toastShown({
-          message: 'Правильно! Карточка изучена и удалена',
-          type: 'success',
-        })
-      );
-      return;
-    }
+  const correct = correctAnswerOf(card, mode);
 
-    dispatch(cardCountIncremented(card.id));
-    const next = pickNextCard(items, card.id);
-    dispatch(learnStarted({ id: next.id, mode: randomMode() }));
-    dispatch(toastShown({ message: 'Правильно!', type: 'success' }));
+  // Ошиблись — остаёмся на той же карточке, чтобы не терять прогресс
+  if (!isAnswerMatch(answer, correct)) {
+    dispatch(
+      toastShown({
+        message: `Неправильно! Правильный ответ: ${correct}`,
+        type: 'error',
+      })
+    );
     return;
   }
 
-  const next = pickNextCard(items, card.id);
-  if (next) dispatch(learnStarted({ id: next.id, mode: randomMode() }));
+  // Пятый правильный ответ — карточка изучена и удаляется
+  if ((card.count ?? 0) >= 4) {
+    dispatch(cardRemoved(card.id));
+    const left = items.filter((item) => item.id !== card.id);
+    if (left.length === 0) {
+      dispatch(learnFinished());
+      dispatch(
+        toastShown({ message: 'Карточки закончились 🎉', type: 'success' })
+      );
+      return;
+    }
+    const nextQueue = queue.filter((id) => id !== card.id);
+    const nextId = pickFromQueue(
+      nextQueue,
+      left.map((item) => item.id)
+    );
+    dispatch(learnStarted({ id: nextId, mode: randomMode(), queue: nextQueue }));
+    dispatch(
+      toastShown({
+        message: 'Правильно! Карточка изучена и удалена',
+        type: 'success',
+      })
+    );
+    return;
+  }
+
+  dispatch(cardCountIncremented(card.id));
+  const nextQueue = advanceQueue(queue, card.id);
+  const nextId = pickFromQueue(
+    nextQueue,
+    items.map((item) => item.id)
+  );
+  dispatch(learnStarted({ id: nextId, mode: randomMode(), queue: nextQueue }));
+  dispatch(toastShown({ message: 'Правильно!', type: 'success' }));
+};
+
+export const skipCard = () => (dispatch, getState) => {
+  const state = getState();
+  const { currentCardId, queue } = state.learn;
+  const items = selectCards(state);
+  if (!currentCardId) return;
+
+  const nextQueue = advanceQueue(queue, currentCardId);
+  const nextId = pickFromQueue(
+    nextQueue,
+    items.map((item) => item.id)
+  );
+  if (!nextId) {
+    dispatch(learnFinished());
+    return;
+  }
+  dispatch(learnStarted({ id: nextId, mode: randomMode(), queue: nextQueue }));
+};
+
+export const revealAnswer = () => (dispatch, getState) => {
+  const state = getState();
+  const { currentCardId, mode } = state.learn;
+  const card = selectCards(state).find((item) => item.id === currentCardId);
+  if (!card) return;
+  dispatch(answerRevealed());
   dispatch(
     toastShown({
-      message: `Неправильно! Правильный ответ: ${correct}`,
-      type: 'error',
+      message: `Правильный ответ: ${correctAnswerOf(card, mode)}`,
+      type: 'info',
     })
   );
 };

@@ -4,6 +4,8 @@ const initialState = {
   currentCardId: null,
   mode: null, // 'eng' — показываем английское слово, 'rus' — русское
   answer: '',
+  queue: [], // очередь id карточек
+  revealed: false, // пользователь нажал «Показать ответ»
   finished: false,
   toast: { message: '', type: '' },
 };
@@ -15,11 +17,16 @@ const learnSlice = createSlice({
     learnStarted(state, action) {
       state.currentCardId = action.payload.id;
       state.mode = action.payload.mode;
+      state.queue = action.payload.queue;
       state.answer = '';
+      state.revealed = false;
       state.finished = false;
     },
     answerChanged(state, action) {
       state.answer = action.payload;
+    },
+    answerRevealed(state) {
+      state.revealed = true;
     },
     toastShown(state, action) {
       state.toast = action.payload;
@@ -31,13 +38,9 @@ const learnSlice = createSlice({
       state.currentCardId = null;
       state.mode = null;
       state.answer = '';
+      state.queue = [];
+      state.revealed = false;
       state.finished = true;
-    },
-    learnReset(state) {
-      state.currentCardId = null;
-      state.mode = null;
-      state.answer = '';
-      state.finished = false;
     },
   },
 });
@@ -45,10 +48,10 @@ const learnSlice = createSlice({
 export const {
   learnStarted,
   answerChanged,
+  answerRevealed,
   toastShown,
   toastHidden,
   learnFinished,
-  learnReset,
 } = learnSlice.actions;
 
 export default learnSlice.reducer;
