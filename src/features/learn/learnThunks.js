@@ -234,10 +234,9 @@ export const revealAnswer = () => (dispatch, getState) => {
   );
 };
 
-// Ответ выбран из вариантов — подставляем его в поле и проверяем
+// Выбран вариант ответа — подставляем его в поле, проверку запускает пользователь
 export const chooseAnswer = (value) => (dispatch) => {
   dispatch(answerChanged(value));
-  dispatch(checkAnswer());
 };
 
 // Сессия закончилась, если ответов столько же, сколько карточек в очереди

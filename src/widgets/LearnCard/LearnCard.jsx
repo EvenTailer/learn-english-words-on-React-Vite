@@ -1,3 +1,4 @@
+import { ANSWER_MODES } from '../../features/learn/plan';
 import Badge from '../../shared/ui/Badge';
 import Button from '../../shared/ui/Button';
 import Card from '../../shared/ui/Card';
@@ -16,19 +17,28 @@ import styles from './LearnCard.module.css';
 export default function LearnCard({
   card,
   mode,
+  answerMode = ANSWER_MODES.TEXT,
+  choices = [],
   revealed = false,
   answer = '',
   lastResult = null,
   inputRef,
+  voice = null,
   onAnswerChange,
+  onChoose,
   onSpeak,
   onPrimary,
   onReveal,
   onSkip,
+  onChangePlan,
   onExit,
 }) {
   const showEnglish = mode === 'eng';
-  const question = showEnglish ? card.englishWord : card.russianWord;
+  const isAudio = answerMode === ANSWER_MODES.AUDIO;
+  const isChoice = answerMode === ANSWER_MODES.CHOICE;
+
+  // В аудио-режиме слово не показываем — его нужно услышать
+  const question = isAudio ? '' : showEnglish ? card.englishWord : card.russianWord;
   const correctAnswer = showEnglish ? card.russianWord : card.englishWord;
 
   const resultClass =
@@ -37,6 +47,18 @@ export default function LearnCard({
       : lastResult?.type === 'wrong'
         ? styles.wrong
         : '';
+
+  const choiceClass = (option) => {
+    const classes = [styles.choice];
+    if (answer === option) classes.push(styles.choiceSelected);
+    if (lastResult?.type === 'correct' && option === correctAnswer) {
+      classes.push(styles.choiceCorrect);
+    }
+    if (lastResult?.type === 'wrong' && answer === option) {
+      classes.push(styles.choiceWrong);
+    }
+    return classes.join(' ');
+  };
 
   return (
     <Card
@@ -52,8 +74,16 @@ export default function LearnCard({
           onClick={onExit}
         />
         <Badge variant={showEnglish ? 'accent' : 'success'}>
-          {showEnglish ? 'ENGLISH' : 'RUSSIAN'}
+          {isAudio ? 'АУДИО' : showEnglish ? 'ENGLISH' : 'RUSSIAN'}
         </Badge>
+        {onChangePlan ? (
+          <IconButton
+            icon={<Icon name="list" size={20} />}
+            label="Сменить набор слов"
+            variant="ghost"
+            onClick={onChangePlan}
+          />
+        ) : null}
       </div>
 
       <div className={styles.media}>
@@ -72,40 +102,87 @@ export default function LearnCard({
         )}
       </div>
 
-      <div className={styles.wordBlock}>
-        <h2 className={styles.word}>{question}</h2>
+      {isAudio ? (
+        <div className={styles.audioBlock}>
+          <IconButton
+            icon={<Icon name="volume" size={32} />}
+            label="Прослушать слово"
+            variant="accent"
+            size="lg"
+            onClick={onSpeak}
+          />
+          <p className={styles.audioHint}>Послушайте слово и напишите его</p>
+        </div>
+      ) : (
+        <div className={styles.wordBlock}>
+          <h2 className={styles.word}>{question}</h2>
 
-        {showEnglish && card.phonetic ? (
-          <div className={styles.meta}>
-            <span className={styles.phonetic}>{card.phonetic}</span>
-            <IconButton
-              icon={<Icon name="volume" size={18} />}
-              label="Произнести"
-              variant="ghost"
-              size="sm"
-              onClick={onSpeak}
+          {showEnglish && card.phonetic ? (
+            <div className={styles.meta}>
+              <span className={styles.phonetic}>{card.phonetic}</span>
+              <IconButton
+                icon={<Icon name="volume" size={18} />}
+                label="Произнести"
+                variant="ghost"
+                size="sm"
+                onClick={onSpeak}
+              />
+            </div>
+          ) : null}
+
+          {revealed ? (
+            <p className={styles.reveal}>
+              Правильный ответ: <strong>{correctAnswer}</strong>
+            </p>
+          ) : null}
+        </div>
+      )}
+
+      {isChoice ? (
+        <div className={styles.choices} role="group" aria-label="Варианты ответа">
+          {choices.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={choiceClass(option)}
+              disabled={revealed}
+              onClick={() => onChoose?.(option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.form}>
+          <div className={styles.inputRow}>
+            <Input
+              label="Ваш ответ"
+              value={answer}
+              onChange={onAnswerChange}
+              placeholder={
+                isAudio ? 'Введите слово на английском...' : 'Введите перевод...'
+              }
+              disabled={revealed}
+              inputRef={inputRef}
+              autoComplete="off"
             />
+            {voice?.supported ? (
+              <IconButton
+                icon={
+                  <Icon
+                    name={voice.listening ? 'mic-off' : 'mic'}
+                    size={20}
+                  />
+                }
+                label={voice.listening ? 'Остановить запись' : 'Голосовой ввод'}
+                variant={voice.listening ? 'danger' : 'accent'}
+                onClick={voice.toggle}
+                className={styles.voiceButton}
+              />
+            ) : null}
           </div>
-        ) : null}
-
-        {revealed ? (
-          <p className={styles.reveal}>
-            Правильный ответ: <strong>{correctAnswer}</strong>
-          </p>
-        ) : null}
-      </div>
-
-      <div className={styles.form}>
-        <Input
-          label="Ваш ответ"
-          value={answer}
-          onChange={onAnswerChange}
-          placeholder="Введите перевод..."
-          disabled={revealed}
-          inputRef={inputRef}
-          autoComplete="off"
-        />
-      </div>
+        </div>
+      )}
 
       <div className={styles.actions}>
         <Button

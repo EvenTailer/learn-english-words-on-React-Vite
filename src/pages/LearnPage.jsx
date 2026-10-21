@@ -1,27 +1,33 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
-import { answerChanged } from '../features/learn/learnSlice';
+import { answerChanged, planCleared } from '../features/learn/learnSlice';
 import {
   checkAnswer,
+  chooseAnswer,
   revealAnswer,
   skipCard,
   startLearn,
 } from '../features/learn/learnThunks';
+import { ANSWER_MODES } from '../features/learn/plan';
 import {
   selectCurrentCard,
   selectIsRevealed,
   selectLearnMode,
 } from '../features/learn/selectors';
+import { toastShown } from '../features/ui/toastSlice';
 import { selectCards } from '../features/words/selectors';
 import { isAnswerMatch } from '../shared/lib/answerNormalizer';
 import { speak } from '../shared/lib/speech';
+import { VOICE_ERRORS } from '../shared/lib/voice';
+import useVoiceInput from '../shared/hooks/useVoiceInput';
 import Button from '../shared/ui/Button';
 import Card from '../shared/ui/Card';
 import EmptyState from '../shared/ui/EmptyState';
 import Icon from '../shared/ui/Icon';
 import ProgressBar from '../shared/ui/ProgressBar';
 import LearnCard from '../widgets/LearnCard/LearnCard';
+import LearnSetup from '../widgets/LearnSetup/LearnSetup';
 import SessionSummary from '../widgets/SessionSummary/SessionSummary';
 import styles from './LearnPage.module.css';
 
@@ -39,14 +45,25 @@ export default function LearnPage() {
   const revealed = useAppSelector(selectIsRevealed);
   const finished = useAppSelector((state) => state.learn.finished);
   const session = useAppSelector((state) => state.learn.session);
+  const plan = useAppSelector((state) => state.learn.plan);
+  const answerMode = useAppSelector((state) => state.learn.answerMode);
+  const choices = useAppSelector((state) => state.learn.choices);
 
   const inputRef = useRef(null);
   const [lastResult, setLastResult] = useState(null);
 
-  // Новая сессия при входе на экран
-  useEffect(() => {
-    dispatch(startLearn());
-  }, [dispatch]);
+  // Ответ голосом: русский перевод или английское слово — по направлению
+  const voice = useVoiceInput({
+    lang: mode === 'eng' ? 'ru-RU' : 'en-US',
+    onResult: (text) => dispatch(answerChanged(text)),
+    onError: (code) =>
+      dispatch(
+        toastShown({
+          message: VOICE_ERRORS[code] ?? 'Не удалось распознать речь',
+          type: 'error',
+        })
+      ),
+  });
 
   // Подсветка результата гаснет через 800 мс
   useEffect(() => {
@@ -59,6 +76,12 @@ export default function LearnPage() {
   useEffect(() => {
     if (currentCard) inputRef.current?.focus();
   }, [currentCard]);
+
+  // В аудио-режиме слово звучит само
+  useEffect(() => {
+    if (answerMode !== ANSWER_MODES.AUDIO || !currentCard) return;
+    speak(currentCard.englishWord);
+  }, [answerMode, currentCard]);
 
   const handleCheck = useCallback(() => {
     if (!currentCard) return;
@@ -112,9 +135,9 @@ export default function LearnPage() {
   const noWords = cards.length === 0;
   const allMastered = finished && total === 0;
 
-  return (
-    <div className={styles.page}>
-      {noWords ? (
+  if (noWords) {
+    return (
+      <div className={styles.page}>
         <Card padding="lg" className={styles.emptyCard}>
           <EmptyState
             title="Словарь пуст"
@@ -140,68 +163,84 @@ export default function LearnPage() {
             }
           />
         </Card>
-      ) : (
-        <>
-          {total > 0 ? (
-            <ProgressBar
-              value={answered}
-              max={total}
-              label="Прогресс сессии"
-              showValue
-              tone="accent"
-            />
-          ) : null}
+      </div>
+    );
+  }
 
-          {allMastered ? (
-            <Card padding="lg" className={styles.emptyCard}>
-              <EmptyState
-                title="Все слова выучены"
-                description="Словарь пройден полностью. Добавьте новые слова или вернитесь на главную."
-                icon={<Icon name="trophy" size={32} />}
-                action={
-                  <div className={styles.emptyActions}>
-                    <Button
-                      variant="primary"
-                      icon={<Icon name="home" size={20} />}
-                      onClick={() => navigate('/')}
-                    >
-                      На главную
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      icon={<Icon name="plus" size={20} />}
-                      onClick={() => navigate('/add')}
-                    >
-                      Добавить слово
-                    </Button>
-                  </div>
-                }
-              />
-            </Card>
-          ) : finished ? (
-            <SessionSummary
-              session={session}
-              onRestart={() => dispatch(startLearn())}
-              onHome={() => navigate('/')}
-            />
-          ) : currentCard ? (
-            <LearnCard
-              card={currentCard}
-              mode={mode}
-              revealed={revealed}
-              answer={answer}
-              lastResult={lastResult}
-              inputRef={inputRef}
-              onAnswerChange={(value) => dispatch(answerChanged(value))}
-              onSpeak={() => speak(currentCard.englishWord)}
-              onPrimary={handlePrimary}
-              onReveal={() => dispatch(revealAnswer())}
-              onSkip={() => dispatch(skipCard())}
-              onExit={() => navigate('/')}
-            />
-          ) : null}
-        </>
-      )}
+  // Плана нет — показываем экран выбора: что именно учим
+  if (!plan) {
+    return (
+      <div className={styles.page}>
+        <LearnSetup />
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.page}>
+      {total > 0 ? (
+        <ProgressBar
+          value={answered}
+          max={total}
+          label="Прогресс сессии"
+          showValue
+          tone="accent"
+        />
+      ) : null}
+
+      {allMastered ? (
+        <Card padding="lg" className={styles.emptyCard}>
+          <EmptyState
+            title="Все слова выучены"
+            description="Словарь пройден полностью. Добавьте новые слова или вернитесь на главную."
+            icon={<Icon name="trophy" size={32} />}
+            action={
+              <div className={styles.emptyActions}>
+                <Button
+                  variant="primary"
+                  icon={<Icon name="home" size={20} />}
+                  onClick={() => navigate('/')}
+                >
+                  На главную
+                </Button>
+                <Button
+                  variant="secondary"
+                  icon={<Icon name="plus" size={20} />}
+                  onClick={() => navigate('/add')}
+                >
+                  Добавить слово
+                </Button>
+              </div>
+            }
+          />
+        </Card>
+      ) : finished ? (
+        <SessionSummary
+          session={session}
+          onRestart={() => dispatch(startLearn(plan))}
+          onHome={() => navigate('/')}
+        />
+      ) : currentCard ? (
+        <LearnCard
+          card={currentCard}
+          mode={mode}
+          answerMode={answerMode}
+          choices={choices}
+          revealed={revealed}
+          answer={answer}
+          lastResult={lastResult}
+          inputRef={inputRef}
+          voice={voice}
+          onAnswerChange={(value) => dispatch(answerChanged(value))}
+          onChoose={(value) => dispatch(chooseAnswer(value))}
+          onSpeak={() => speak(currentCard.englishWord)}
+          onPrimary={handlePrimary}
+          onReveal={() => dispatch(revealAnswer())}
+          onSkip={() => dispatch(skipCard())}
+          onChangePlan={() => dispatch(planCleared())}
+          onExit={() => navigate('/')}
+        />
+      ) : null}
     </div>
   );
 }

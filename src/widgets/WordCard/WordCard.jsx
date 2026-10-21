@@ -22,6 +22,7 @@ export default function WordCard({
   variant = 'grid',
   onSpeak,
   onDelete,
+  onAddToList,
 }) {
   const meta = STATUS_META[status] ?? STATUS_META.new;
   const isPreview = variant === 'preview';
@@ -84,6 +85,14 @@ export default function WordCard({
               variant="accent"
               onClick={() => onSpeak?.(word)}
             />
+            {onAddToList ? (
+              <IconButton
+                icon={<Icon name="list" size={20} />}
+                label={`Добавить ${word} в список`}
+                variant="ghost"
+                onClick={() => onAddToList(card)}
+              />
+            ) : null}
             {onDelete ? (
               <IconButton
                 icon={<Icon name="trash" size={20} />}

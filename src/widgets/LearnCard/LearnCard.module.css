@@ -98,6 +98,82 @@
   width: 100%;
 }
 
+/* Поле ответа и кнопка голосового ввода в одну строку */
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.inputRow > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.voiceButton {
+  flex: 0 0 auto;
+}
+
+/* Режим выбора ответа: четыре варианта */
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.choice {
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: var(--fs-16);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.choice:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  background: var(--surface-3);
+}
+
+.choice:disabled {
+  cursor: default;
+}
+
+.choiceSelected {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+
+.choiceCorrect {
+  border-color: var(--success-border);
+  background: var(--success-soft);
+}
+
+.choiceWrong {
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+}
+
+/* Аудио-режим: вместо слова — кнопка прослушивания */
+.audioBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.audioHint {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--text-3);
+}
+
 .actions {
   width: 100%;
   display: flex;

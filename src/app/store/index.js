@@ -10,6 +10,7 @@ import {
 } from 'redux-persist';
 import cardsReducer from '../../features/words/wordsSlice';
 import learnReducer from '../../features/learn/learnSlice';
+import listsReducer from '../../features/lists/listsSlice';
 import dictionaryReducer from '../../features/dictionary/dictionarySlice';
 import wordlistsReducer from '../../features/wordlists/wordlistsSlice';
 import settingsReducer from '../../features/settings/settingsSlice';
@@ -50,10 +51,16 @@ const persistedSettingsReducer = persistReducer(
   settingsReducer
 );
 
+const persistedListsReducer = persistReducer(
+  { key: 'lists', keyPrefix: '', version: 1, storage: localforageStorage },
+  listsReducer
+);
+
 const rootReducer = combineReducers({
   cards: persistedCardsReducer,
   progress: persistedProgressReducer,
   stats: persistedStatsReducer,
+  lists: persistedListsReducer,
   learn: learnReducer,
   dictionary: dictionaryReducer,
   wordlists: wordlistsReducer,

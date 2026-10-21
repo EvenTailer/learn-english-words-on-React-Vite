@@ -1,15 +1,21 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
 import { lookupWord } from '../features/dictionary/dictionarySlice';
+import { selectLists } from '../features/lists/selectors';
+import { wordsAddedToList } from '../features/lists/listsSlice';
 import { wordAdded } from '../features/progress/progressSlice';
 import { toastShown } from '../features/ui/toastSlice';
 import { selectCards } from '../features/words/selectors';
 import { cardAdded } from '../features/words/wordsSlice';
 import { createId } from '../shared/lib/id';
+import { VOICE_ERRORS } from '../shared/lib/voice';
+import useVoiceInput from '../shared/hooks/useVoiceInput';
 import Button from '../shared/ui/Button';
 import Card from '../shared/ui/Card';
 import Icon from '../shared/ui/Icon';
+import IconButton from '../shared/ui/IconButton';
 import Input from '../shared/ui/Input';
+import Select from '../shared/ui/Select';
 import WordCard from '../widgets/WordCard/WordCard';
 import styles from './AddPage.module.css';
 
@@ -20,6 +26,7 @@ export default function AddPage() {
   const dispatch = useAppDispatch();
 
   const cards = useAppSelector(selectCards);
+  const lists = useAppSelector(selectLists);
   const lookupStatus = useAppSelector((state) => state.dictionary.status);
 
   const [englishWord, setEnglishWord] = useState('');
@@ -27,15 +34,42 @@ export default function AddPage() {
   const [linkImg, setLinkImg] = useState('');
   const [phonetic, setPhonetic] = useState('');
   const [definition, setDefinition] = useState('');
+  const [example, setExample] = useState('');
   const [imageSource, setImageSource] = useState('');
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [englishError, setEnglishError] = useState('');
   const [russianError, setRussianError] = useState('');
+  const [listId, setListId] = useState('');
 
   const englishRef = useRef(null);
   const russianRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Голосовой ввод: английское слово и перевод
+  const englishVoice = useVoiceInput({
+    lang: 'en-US',
+    onResult: (text) => setEnglishWord(text),
+    onError: (code) =>
+      dispatch(
+        toastShown({
+          message: VOICE_ERRORS[code] ?? 'Не удалось распознать речь',
+          type: 'error',
+        })
+      ),
+  });
+
+  const russianVoice = useVoiceInput({
+    lang: 'ru-RU',
+    onResult: (text) => setRussianWord(text),
+    onError: (code) =>
+      dispatch(
+        toastShown({
+          message: VOICE_ERRORS[code] ?? 'Не удалось распознать речь',
+          type: 'error',
+        })
+      ),
+  });
 
   // Освобождаем объектный URL предпросмотра
   useEffect(
@@ -90,6 +124,7 @@ export default function AddPage() {
         setRussianWord((prev) => (prev.trim() ? prev : result.russianWord ?? ''));
         setPhonetic(result.phonetic ?? '');
         setDefinition(result.definition ?? '');
+        setExample(result.example ?? '');
         setLinkImg((prev) => (prev.trim() ? prev : result.imageUrl ?? ''));
         setImageSource(result.imageSource ?? '');
       })
@@ -127,11 +162,13 @@ export default function AddPage() {
     setLinkImg('');
     setPhonetic('');
     setDefinition('');
+    setExample('');
     setImageSource('');
     setFile(null);
     setPreviewUrl('');
     setEnglishError('');
     setRussianError('');
+    setListId('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -172,10 +209,30 @@ export default function AddPage() {
         count: 0,
         phonetic,
         definition,
+        example,
         imageSource,
       })
     );
     dispatch(wordAdded({ englishWord: english, russianWord: russian }));
+
+    // Кладём слово в выбранный свой список
+    if (listId) {
+      dispatch(
+        wordsAddedToList({
+          listId,
+          words: [
+            {
+              englishWord: english,
+              russianWord: russian,
+              phonetic,
+              definition,
+              linkImg: image,
+            },
+          ],
+        })
+      );
+    }
+
     dispatch(toastShown({ message: 'Слово добавлено', type: 'success' }));
 
     resetForm();
@@ -194,16 +251,36 @@ export default function AddPage() {
 
           <div className={styles.form}>
             <div className={styles.lookupRow}>
-              <Input
-                label="Английское слово"
-                value={englishWord}
-                onChange={handleEnglishChange}
-                placeholder="Например: fantastic"
-                error={englishError}
-                inputRef={englishRef}
-                required
-                autoComplete="off"
-              />
+              <div className={styles.inputRow}>
+                <Input
+                  label="Английское слово"
+                  value={englishWord}
+                  onChange={handleEnglishChange}
+                  placeholder="Например: fantastic"
+                  error={englishError}
+                  inputRef={englishRef}
+                  required
+                  autoComplete="off"
+                />
+                {englishVoice.supported ? (
+                  <IconButton
+                    icon={
+                      <Icon
+                        name={englishVoice.listening ? 'mic-off' : 'mic'}
+                        size={20}
+                      />
+                    }
+                    label={
+                      englishVoice.listening
+                        ? 'Остановить запись'
+                        : 'Продиктовать слово'
+                    }
+                    variant={englishVoice.listening ? 'danger' : 'accent'}
+                    onClick={englishVoice.toggle}
+                    className={styles.voiceButton}
+                  />
+                ) : null}
+              </div>
               <Button
                 variant="secondary"
                 onClick={handleLookup}
@@ -238,16 +315,49 @@ export default function AddPage() {
               </ul>
             ) : null}
 
-            <Input
-              label="Перевод"
-              value={russianWord}
-              onChange={handleRussianChange}
-              placeholder="Например: фантастический"
-              error={russianError}
-              inputRef={russianRef}
-              required
-              autoComplete="off"
-            />
+            <div className={styles.inputRow}>
+              <Input
+                label="Перевод"
+                value={russianWord}
+                onChange={handleRussianChange}
+                placeholder="Например: фантастический"
+                error={russianError}
+                inputRef={russianRef}
+                required
+                autoComplete="off"
+              />
+              {russianVoice.supported ? (
+                <IconButton
+                  icon={
+                    <Icon name={russianVoice.listening ? 'mic-off' : 'mic'} size={20} />
+                  }
+                  label={
+                    russianVoice.listening
+                      ? 'Остановить запись'
+                      : 'Продиктовать перевод'
+                  }
+                  variant={russianVoice.listening ? 'danger' : 'accent'}
+                  onClick={russianVoice.toggle}
+                  className={styles.voiceButton}
+                />
+              ) : null}
+            </div>
+
+            {lists.length > 0 ? (
+              <Select
+                label="Добавить в список"
+                value={listId}
+                options={[
+                  { value: '', label: 'Без списка' },
+                  ...lists.map((list) => ({
+                    value: list.id,
+                    label: `${list.name} (${list.words.length})`,
+                  })),
+                ]}
+                onChange={setListId}
+                hint="Слово попадёт в свой список и в словарь"
+              />
+            ) : null}
 
             <div className={styles.imageBlock}>
               <Input

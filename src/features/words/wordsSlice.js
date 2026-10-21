@@ -59,13 +59,24 @@ const wordsSlice = createSlice({
     },
     // Массовый импорт из готовых наборов слов, дубликаты пропускаем
     cardsImported(state, action) {
-      const existing = new Set(
-        state.items.map((card) => card.englishWord.toLowerCase())
+      const existing = new Map(
+        state.items.map((card) => [card.englishWord.toLowerCase(), card])
       );
       for (const card of action.payload) {
         const key = card.englishWord.toLowerCase();
-        if (existing.has(key)) continue;
-        existing.add(key);
+        const current = existing.get(key);
+        if (current) {
+          // слово уже есть — доводим карточку: картинка, перевод, набор
+          if (!current.linkImg && card.linkImg) current.linkImg = card.linkImg;
+          if (!current.russianWord && card.russianWord) {
+            current.russianWord = card.russianWord;
+          }
+          if (card.sets) {
+            current.sets = [...new Set([...(current.sets ?? []), ...card.sets])];
+          }
+          continue;
+        }
+        existing.set(key, card);
         state.items.push(card);
       }
     },

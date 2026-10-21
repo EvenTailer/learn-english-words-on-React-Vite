@@ -19,6 +19,24 @@
   gap: var(--gap-stack);
 }
 
+/* Поле и кнопка голосового ввода в одну строку */
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inputRow > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.voiceButton {
+  flex: 0 0 auto;
+}
+
 .headings {
   display: flex;
   flex-direction: column;

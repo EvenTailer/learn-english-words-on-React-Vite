@@ -1,30 +1,26 @@
-﻿import { useEffect, useMemo } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
 import { wordsAdded } from '../features/progress/progressSlice';
 import { toastShown } from '../features/ui/toastSlice';
 import { loadWordLists } from '../features/wordlists/wordlistsSlice';
+import { WORD_SETS } from '../features/wordlists/sets';
 import { selectCards } from '../features/words/selectors';
 import { cardsImported } from '../features/words/wordsSlice';
 import { createId } from '../shared/lib/id';
 import Card from '../shared/ui/Card';
+import Chip from '../shared/ui/Chip';
 import Icon from '../shared/ui/Icon';
 import Skeleton from '../shared/ui/Skeleton';
+import MyLists from '../widgets/MyLists/MyLists';
 import WordListCard from '../widgets/WordListCard/WordListCard';
 import styles from './WordListsPage.module.css';
 
-// Список наборов: ключ в wordlists.json + подпись для карточки
-const SETS = [
-  { key: 'top250', title: 'Топ 250', hint: 'Самые частотные слова' },
-  { key: 'top500', title: 'Топ 500', hint: 'Частотные слова' },
-  { key: 'top1000', title: 'Топ 1000', hint: 'Расширенный набор' },
-  { key: 'top2000', title: 'Топ 2000', hint: 'Большой набор' },
-  { key: 'cefrA1', title: 'Уровень A1', hint: 'Beginner · Oxford 3000' },
-  { key: 'cefrA2', title: 'Уровень A2', hint: 'Elementary · Oxford 3000' },
-  { key: 'cefrB1', title: 'Уровень B1', hint: 'Intermediate · Oxford 3000' },
-  { key: 'cefrB2', title: 'Уровень B2', hint: 'Upper-Intermediate · Oxford 3000' },
-];
-
 const SKELETON_COUNT = 4;
+
+const TABS = [
+  { value: 'sets', label: 'Готовые наборы' },
+  { value: 'lists', label: 'Мои списки' },
+];
 
 export default function WordListsPage() {
   const dispatch = useAppDispatch();
@@ -32,6 +28,8 @@ export default function WordListsPage() {
   const status = useAppSelector((state) => state.wordlists.status);
   const data = useAppSelector((state) => state.wordlists.data);
   const cards = useAppSelector(selectCards);
+
+  const [tab, setTab] = useState('sets');
 
   useEffect(() => {
     if (status === 'idle') dispatch(loadWordLists());
@@ -54,9 +52,11 @@ export default function WordListsPage() {
       id: createId(),
       englishWord: word.en,
       russianWord: word.ru,
-      linkImg: '',
+      // картинка посчитана при сборке набора — она уже в файле
+      linkImg: word.img ?? '',
       count: 0,
       level: word.level ?? '',
+      sets: [set.key],
     }));
 
     dispatch(cardsImported(newCards));
@@ -88,58 +88,75 @@ export default function WordListsPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headings}>
-          <h1 className={styles.title}>Готовые наборы слов</h1>
+          <h1 className={styles.title}>Наборы слов</h1>
           <p className={styles.subtitle}>
-            Слова с переводами и уровнем сложности
+            Готовые подборки и ваши собственные списки
           </p>
           <p className={styles.total}>В словаре сейчас: {cards.length} слов</p>
         </div>
       </header>
 
-      {isLoading ? (
-        <div className={styles.grid}>
-          {Array.from({ length: SKELETON_COUNT }, (_, index) => (
-            <Card key={index} padding="md" className={styles.skeletonCard}>
-              <Skeleton variant="text" width="60%" />
-              <Skeleton variant="text" width="40%" />
-              <Skeleton variant="rect" height={72} />
-              <Skeleton variant="rect" height={48} />
-            </Card>
-          ))}
-        </div>
-      ) : null}
+      <div className={styles.tabs} role="group" aria-label="Раздел наборов">
+        {TABS.map((item) => (
+          <Chip
+            key={item.value}
+            label={item.label}
+            active={tab === item.value}
+            onClick={() => setTab(item.value)}
+          />
+        ))}
+      </div>
 
-      {status === 'error' ? (
-        <div className={styles.error}>
-          <Icon name="close" size={20} />
-          <span>Не удалось загрузить наборы слов</span>
-        </div>
-      ) : null}
+      {tab === 'lists' ? (
+        <MyLists />
+      ) : (
+        <>
+          {isLoading ? (
+            <div className={styles.grid}>
+              {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+                <Card key={index} padding="md" className={styles.skeletonCard}>
+                  <Skeleton variant="text" width="60%" />
+                  <Skeleton variant="text" width="40%" />
+                  <Skeleton variant="rect" height={72} />
+                  <Skeleton variant="rect" height={48} />
+                </Card>
+              ))}
+            </div>
+          ) : null}
 
-      {!isLoading && status !== 'error' ? (
-        <div className={styles.grid}>
-          {SETS.map((set) => {
-            const words = data?.sets?.[set.key] ?? [];
+          {status === 'error' ? (
+            <div className={styles.error}>
+              <Icon name="close" size={20} />
+              <span>Не удалось загрузить наборы слов</span>
+            </div>
+          ) : null}
 
-            return (
-              <WordListCard
-                key={set.key}
-                title={set.title}
-                hint={set.hint}
-                words={words}
-                count={words.length}
-                imported={isImported(words)}
-                onImport={() => handleImport(set)}
-              />
-            );
-          })}
-        </div>
-      ) : null}
+          {!isLoading && status !== 'error' ? (
+            <div className={styles.grid}>
+              {WORD_SETS.map((set) => {
+                const words = data?.sets?.[set.key] ?? [];
 
-      <p className={styles.license}>
-        Oxford 3000 (public domain) · CEFR-J Vocabulary Profile (Tono
-        Laboratory, TUFS) · FrequencyWords (MIT) · переводы Google Translate
-      </p>
+                return (
+                  <WordListCard
+                    key={set.key}
+                    title={set.title}
+                    hint={set.hint}
+                    words={words}
+                    count={words.length}
+                    imported={isImported(words)}
+                    onImport={() => handleImport(set)}
+                  />
+                );
+              })}
+            </div>
+          ) : null}
+
+          <p className={styles.license}>
+            Oxford 3000 (public domain) · CEFR-J Vocabulary Profile (Tono
+            Laboratory, TUFS) · FrequencyWords (MIT) · переводы Google Translate
+          </p>
+        </>
+      )}
     </div>
   );
 }

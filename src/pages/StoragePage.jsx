@@ -15,6 +15,7 @@ import EmptyState from '../shared/ui/EmptyState';
 import Icon from '../shared/ui/Icon';
 import SearchField from '../shared/ui/SearchField';
 import Select from '../shared/ui/Select';
+import AddToListModal from '../widgets/AddToList/AddToListModal';
 import WordCard from '../widgets/WordCard/WordCard';
 import styles from './StoragePage.module.css';
 
@@ -30,6 +31,7 @@ const SORT_OPTIONS = [
 
 const FILTERS = [
   { value: 'all', label: 'Все' },
+  { value: 'learning', label: 'В процессе' },
   { value: 'mastered', label: 'Изученные' },
   { value: 'new', label: 'Новые' },
 ];
@@ -46,6 +48,7 @@ export default function StoragePage() {
   const [sortBy, setSortBy] = useState('az-en');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [listTargetId, setListTargetId] = useState(null);
 
   const filtered = useMemo(
     () => filterCards(cards, { query, status, progressMap }),
@@ -65,6 +68,11 @@ export default function StoragePage() {
   const pendingCard = useMemo(
     () => cards.find((card) => card.id === pendingDeleteId) ?? null,
     [cards, pendingDeleteId]
+  );
+
+  const listTargetCard = useMemo(
+    () => cards.find((card) => card.id === listTargetId) ?? null,
+    [cards, listTargetId]
   );
 
   // Любое изменение выборки возвращает пагинацию на первую страницу
@@ -198,6 +206,7 @@ export default function StoragePage() {
                   correct={progress?.correct ?? card.count ?? 0}
                   onSpeak={(word) => speak(word)}
                   onDelete={() => setPendingDeleteId(card.id)}
+                  onAddToList={(target) => setListTargetId(target.id)}
                 />
               );
             })}
@@ -228,6 +237,12 @@ export default function StoragePage() {
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDeleteId(null)}
+      />
+
+      <AddToListModal
+        card={listTargetCard}
+        open={Boolean(listTargetCard)}
+        onClose={() => setListTargetId(null)}
       />
     </div>
   );

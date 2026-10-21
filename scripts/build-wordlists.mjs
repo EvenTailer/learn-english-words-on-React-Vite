@@ -26,6 +26,14 @@ const SOURCES = {
     'https://raw.githubusercontent.com/openlanguageprofiles/olp-en-cefrj/master/cefrj-vocabulary-profile-1.5.csv',
 };
 
+// Картинки статей Википедии — бесплатно, без ключа.
+// User-Agent с контактом обязателен: без него Wikimedia отдаёт 429.
+const IMAGES_ENDPOINT = 'https://en.wikipedia.org/w/api.php';
+const USER_AGENT =
+  'LearnEnglishWordsApp/1.0 (https://github.com/EvenTailer/learn-english-words-on-React-Vite; vasya.vasiliy.1964@mail.ru)';
+const IMAGE_BATCH = 50;
+const IMAGE_DELAY_MS = 1100;
+
 const TOP_SIZES = [250, 500, 1000, 2000];
 const CONCURRENCY = 8;
 
@@ -43,7 +51,12 @@ const STOPWORDS = new Set(
    new old young big small large little good bad best better worse worst right wrong
    man men woman women child children people person home house room door floor wall
    day days night morning evening week month year time today tomorrow yesterday
-   hello hi hey please thanks thank ok okay yes no yeah nope maybe`
+   hello hi hey please thanks thank ok okay yes no yeah nope maybe
+   since towards toward upon within without per via plus minus versus vs amid amidst
+   amongst besides beyond despite except inside outside beneath above across along around
+   through throughout under underneath between among against about above below off onto
+   until up upon while whereas whether either neither both each every any all some few
+   one two three four five six seven eight nine ten hundred thousand million`
     .split(/\s+/)
     .filter(Boolean)
 );
@@ -122,6 +135,72 @@ const pool = async (items, worker, limit = CONCURRENCY) => {
   return results;
 };
 
+/**
+ * Собирает картинки статей Википедии пачками по 50 слов.
+ * Кэш в scripts/.cache/images.json — повторный запуск не ходит в сеть.
+ * Покрытие: ~30% слов всего, до 80% у предметных существительных.
+ */
+const fetchImages = async (words) => {
+  const cacheFile = resolve(CACHE_DIR, 'images.json');
+  const cache = await readJson(cacheFile, {});
+  const missing = words.filter((word) => !cache[word]);
+
+  console.log(`Картинок нет в кеше: ${missing.length}`);
+
+  for (let i = 0; i < missing.length; i += IMAGE_BATCH) {
+    const chunk = missing.slice(i, i + IMAGE_BATCH);
+    const url =
+      `${IMAGES_ENDPOINT}?action=query&titles=${encodeURIComponent(chunk.join('|'))}` +
+      '&prop=pageimages&piprop=thumbnail|original&pilicense=any&pithumbsize=400&format=json&origin=*';
+
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+
+        if (response.status === 429) {
+          await response.text();
+          await sleep(4000);
+          continue;
+        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const normalized = Object.fromEntries(
+          (data?.query?.normalized ?? []).map((item) => [item.to, item.from])
+        );
+        const redirected = Object.fromEntries(
+          (data?.query?.redirects ?? []).map((item) => [item.to, item.from])
+        );
+
+        for (const page of Object.values(data?.query?.pages ?? {})) {
+          const title = page.title ?? '';
+          const word =
+            redirected[normalized[title] ?? title] ?? normalized[title] ?? title;
+          const source = page.thumbnail?.source ?? page.original?.source ?? '';
+          if (source) cache[word] = source;
+        }
+
+        break;
+      } catch (error) {
+        console.warn(`  ! картинки, попытка ${attempt}: ${error.message}`);
+        await sleep(3000);
+      }
+    }
+
+    await writeJson(cacheFile, cache);
+    if ((i + IMAGE_BATCH) % 500 === 0) {
+      console.log(`  картинки: ${Math.min(i + IMAGE_BATCH, missing.length)}/${missing.length}`);
+    }
+    await sleep(IMAGE_DELAY_MS);
+  }
+
+  await writeJson(cacheFile, cache);
+  const found = words.filter((word) => cache[word]).length;
+  console.log(`Картинок найдено: ${found} из ${words.length}`);
+
+  return cache;
+};
+
 const main = async () => {
   console.log('Скачиваем источники...');
   const [oxfordText, frequencyText, cefrjText] = await Promise.all([
@@ -173,7 +252,8 @@ const main = async () => {
   for (const level of ['A1', 'A2', 'B1', 'B2']) {
     cefrSets[level] = (oxford[level] ?? [])
       .map((word) => word.trim().toLowerCase())
-      .filter(Boolean);
+      // служебные слова в тренажёре бесполезны: у них перевод в одну букву
+      .filter((word) => word && !STOPWORDS.has(word));
   }
 
   const topSets = {};
@@ -211,6 +291,9 @@ const main = async () => {
     }
   });
   await writeJson(cacheFile, cache);
+  console.log('Переводы готовы, ищем картинки...');
+
+  const images = await fetchImages(allWords);
 
   const buildSet = (words) =>
     words
@@ -218,6 +301,8 @@ const main = async () => {
         en: word,
         ru: cache[word] ?? '',
         level: levelByWord.get(word) ?? '',
+        // убираем служебные utm-метки из ссылки на картинку
+        img: (images[word] ?? '').split('?')[0],
       }))
       .filter((item) => item.ru);
 
