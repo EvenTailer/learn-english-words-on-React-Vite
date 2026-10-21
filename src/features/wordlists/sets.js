@@ -1,4 +1,4 @@
-// Готовые наборы слов: набор известен и без загрузки wordlists.json.
+// Готовые наборы слов: список известен и без загрузки wordlists.json.
 // Размеры набора и переводы лежат в src/data/wordlists.json.
 
 export const WORD_SETS = [
