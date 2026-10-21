@@ -1,5 +1,9 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { fetchDictionary, fetchImage, fetchTranslation } from './dictionaryApi';
+import {
+  fetchDictionary,
+  fetchImageWithFallback,
+  fetchTranslation,
+} from './dictionaryApi';
 
 export const lookupWord = createAsyncThunk(
   'dictionary/lookup',
@@ -10,7 +14,7 @@ export const lookupWord = createAsyncThunk(
     try {
       const [dictionary, image] = await Promise.all([
         fetchDictionary(word, signal).catch(() => null),
-        fetchImage(word, signal).catch(() => null),
+        fetchImageWithFallback(word, signal).catch(() => null),
       ]);
 
       let translations = dictionary?.translations ?? [];

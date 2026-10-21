@@ -4,6 +4,7 @@
 const DICTIONARY_ENDPOINT = 'https://freedictionaryapi.com/api/v1/entries/en';
 const TRANSLATE_ENDPOINT = 'https://translate.googleapis.com/translate_a/single';
 const COMMONS_ENDPOINT = 'https://commons.wikimedia.org/w/api.php';
+const OPENVERSE_ENDPOINT = 'https://api.openverse.org/v1/images/';
 
 // «го́род» -> «город»: Wiktionary пишет ударение комбинирующими знаками
 export const stripStress = (text) =>
@@ -87,4 +88,38 @@ export const fetchImage = async (word, signal) => {
     title: page.title ?? '',
     source: 'Wikimedia Commons',
   };
+};
+
+// Запасной источник: Openverse (тоже без ключа, но жёсткий лимит 200/день)
+export const fetchOpenverseImage = async (word, signal) => {
+  const params = new URLSearchParams({ q: word, page_size: '5' });
+  const response = await fetch(`${OPENVERSE_ENDPOINT}?${params}`, { signal });
+  if (!response.ok) {
+    throw new Error(`Openverse недоступен (HTTP ${response.status})`);
+  }
+
+  const data = await response.json();
+  const image = data.results?.find((item) => item.url);
+  if (!image) return null;
+
+  return {
+    url: image.url,
+    title: image.title ?? '',
+    source: 'Openverse',
+  };
+};
+
+// Картинка с запасным вариантом: Wikimedia API часто отвечает 429
+export const fetchImageWithFallback = async (word, signal) => {
+  try {
+    const image = await fetchImage(word, signal);
+    if (image) return image;
+  } catch {
+    // пробуем запасной источник
+  }
+  try {
+    return await fetchOpenverseImage(word, signal);
+  } catch {
+    return null;
+  }
 };

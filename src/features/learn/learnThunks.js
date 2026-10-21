@@ -7,59 +7,102 @@ import { toastShown } from '../ui/toastSlice';
 import { selectCards } from '../words/selectors';
 import { cardCountIncremented } from '../words/wordsSlice';
 import {
+  answerChanged,
   answerRevealed,
   learnFinished,
   learnStarted,
   sessionReset,
   sessionStatAdded,
 } from './learnSlice';
-import { advanceQueue, buildQueue, pickFromQueue } from './session';
+import {
+  ANSWER_MODES,
+  DEFAULT_PLAN,
+  LEARN_SOURCES,
+  buildChoices,
+  buildPlanQueue,
+  pickMode,
+} from './plan';
+import { advanceQueue, pickFromQueue } from './session';
 
 const correctAnswerOf = (card, mode) =>
   mode === 'eng' ? card.russianWord : card.englishWord;
 
-// Направление перевода: mixed — случайно, en-ru / ru-en — как выбрал пользователь
-const pickMode = (direction) => {
-  if (direction === 'en-ru') return 'eng';
-  if (direction === 'ru-en') return 'rus';
-  return Math.random() < 0.5 ? 'eng' : 'rus';
+// Слова выбранного своего списка — для источника «Мои списки»
+const listWordsOf = (state, plan) => {
+  if (plan.source !== LEARN_SOURCES.LIST) return [];
+  const list = state.lists?.items?.find((item) => item.id === plan.listId);
+  return list?.words ?? [];
 };
 
-// Выученные слова не попадают в новую сессию
-const availableCards = (state) => {
-  const progress = state.progress.words;
-  return selectCards(state).filter(
-    (card) => progress[card.englishWord?.toLowerCase()]?.status !== 'mastered'
-  );
-};
+// План по умолчанию + направление из настроек
+const resolvePlan = (state, plan) => ({
+  ...DEFAULT_PLAN,
+  ...(plan ?? {}),
+  direction: plan?.direction ?? state.settings.direction,
+});
 
-export const startLearn = () => (dispatch, getState) => {
+// Запускает карточку: режим вопроса + варианты ответа
+const startCard = (dispatch, getState, { id, queue, plan }) => {
   const state = getState();
-  const items = availableCards(state);
-  if (items.length === 0) {
-    dispatch(learnFinished());
-    return;
-  }
+  const items = selectCards(state);
+  const card = items.find((item) => item.id === id);
+  const mode = pickMode(plan.direction, plan.answerMode);
+  const choices =
+    plan.answerMode === ANSWER_MODES.CHOICE
+      ? buildChoices(card, items)
+      : [];
 
-  const queue = buildQueue(items);
-  dispatch(sessionReset({ total: queue.length }));
   dispatch(
     learnStarted({
-      id: queue[0],
-      mode: pickMode(state.settings.direction),
+      id,
+      mode,
       queue,
+      choices,
+      plan,
+      answerMode: plan.answerMode,
     })
   );
 };
 
+export const startLearn = (plan) => (dispatch, getState) => {
+  const state = getState();
+  const effectivePlan = resolvePlan(state, plan);
+  const items = selectCards(state);
+
+  const queue = buildPlanQueue(items, {
+    progressMap: state.progress.words,
+    plan: effectivePlan,
+    now: Date.now(),
+    listWords: listWordsOf(state, effectivePlan),
+  });
+
+  if (queue.length === 0) {
+    dispatch(
+      toastShown({
+        message: 'В этом источнике нет слов — выберите другой',
+        type: 'info',
+      })
+    );
+    dispatch(learnFinished());
+    return;
+  }
+
+  dispatch(sessionReset({ total: queue.length }));
+  startCard(dispatch, getState, {
+    id: queue[0],
+    queue,
+    plan: effectivePlan,
+  });
+};
+
 export const checkAnswer = () => (dispatch, getState) => {
   const state = getState();
-  const { currentCardId, mode, answer, queue } = state.learn;
+  const { currentCardId, mode, answer, queue, plan } = state.learn;
   const items = selectCards(state);
   const card = items.find((item) => item.id === currentCardId);
   if (!card) return;
 
-  if (answer.trim() === '') {
+  if (String(answer).trim() === '') {
     dispatch(toastShown({ message: 'Вы ничего не ответили', type: 'error' }));
     return;
   }
@@ -128,7 +171,14 @@ export const checkAnswer = () => (dispatch, getState) => {
     ? queue.filter((id) => id !== card.id)
     : advanceQueue(queue, card.id);
   const available = new Set(
-    availableCards(getState()).map((item) => item.id)
+    selectCards(getState())
+      .filter((item) => {
+        const entry = getState().progress.words[
+          String(item.englishWord ?? '').trim().toLowerCase()
+        ];
+        return entry?.status !== 'mastered';
+      })
+      .map((item) => item.id)
   );
   const nextId = pickFromQueue(nextQueue, available);
 
@@ -137,19 +187,17 @@ export const checkAnswer = () => (dispatch, getState) => {
     return;
   }
 
-  dispatch(
-    learnStarted({
-      id: nextId,
-      mode: pickMode(getState().settings.direction),
-      queue: nextQueue,
-    })
-  );
+  startCard(dispatch, getState, {
+    id: nextId,
+    queue: nextQueue,
+    plan: plan ?? DEFAULT_PLAN,
+  });
   finishIfDone(dispatch, getState);
 };
 
 export const skipCard = () => (dispatch, getState) => {
   const state = getState();
-  const { currentCardId, queue } = state.learn;
+  const { currentCardId, queue, plan } = state.learn;
   const items = selectCards(state);
   if (!currentCardId) return;
 
@@ -163,13 +211,12 @@ export const skipCard = () => (dispatch, getState) => {
     dispatch(learnFinished());
     return;
   }
-  dispatch(
-    learnStarted({
-      id: nextId,
-      mode: pickMode(getState().settings.direction),
-      queue: nextQueue,
-    })
-  );
+
+  startCard(dispatch, getState, {
+    id: nextId,
+    queue: nextQueue,
+    plan: plan ?? DEFAULT_PLAN,
+  });
   finishIfDone(dispatch, getState);
 };
 
@@ -185,6 +232,12 @@ export const revealAnswer = () => (dispatch, getState) => {
       type: 'info',
     })
   );
+};
+
+// Ответ выбран из вариантов — подставляем его в поле и проверяем
+export const chooseAnswer = (value) => (dispatch) => {
+  dispatch(answerChanged(value));
+  dispatch(checkAnswer());
 };
 
 // Сессия закончилась, если ответов столько же, сколько карточек в очереди

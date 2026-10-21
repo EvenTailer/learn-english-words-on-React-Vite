@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { nextDueAt } from './srs';
 
 // Порог, после которого слово считается изученным (5 верных ответов)
 export const MASTERY_THRESHOLD = 5;
@@ -26,6 +27,8 @@ const progressSlice = createSlice({
         status: existing?.status ?? 'new',
         correct: existing?.correct ?? 0,
         wrong: existing?.wrong ?? 0,
+        streak: existing?.streak ?? 0,
+        dueAt: existing?.dueAt ?? null,
         lastSeenAt: existing?.lastSeenAt ?? null,
         masteredAt: existing?.masteredAt ?? null,
       };
@@ -43,6 +46,8 @@ const progressSlice = createSlice({
           status: existing?.status ?? 'new',
           correct: existing?.correct ?? 0,
           wrong: existing?.wrong ?? 0,
+          streak: existing?.streak ?? 0,
+          dueAt: existing?.dueAt ?? null,
           lastSeenAt: existing?.lastSeenAt ?? null,
           masteredAt: existing?.masteredAt ?? null,
         };
@@ -61,6 +66,8 @@ const progressSlice = createSlice({
         status: 'new',
         correct: 0,
         wrong: 0,
+        streak: 0,
+        dueAt: null,
         lastSeenAt: null,
         masteredAt: null,
       };
@@ -68,15 +75,22 @@ const progressSlice = createSlice({
       if (correct) {
         // count — накопительный счётчик верных ответов по этой карточке
         existing.correct = Math.max(existing.correct, count ?? existing.correct + 1);
+        // streak — сколько верных ответов подряд: по нему считается интервал
+        existing.streak = (existing.streak ?? 0) + 1;
         if (existing.correct >= MASTERY_THRESHOLD) {
           existing.status = 'mastered';
           existing.masteredAt = Date.now();
         } else {
           existing.status = 'learning';
         }
+        // слово «отдыхает» до следующего повторения
+        existing.dueAt = nextDueAt(existing.streak);
       } else {
         existing.wrong += 1;
         existing.status = 'learning';
+        existing.streak = 0;
+        // ошибка — повторяем сегодня
+        existing.dueAt = Date.now();
       }
 
       existing.lastSeenAt = Date.now();

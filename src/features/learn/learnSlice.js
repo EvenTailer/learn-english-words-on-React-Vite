@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { ANSWER_MODES } from './plan';
 
 const initialState = {
   currentCardId: null,
@@ -7,6 +8,9 @@ const initialState = {
   queue: [], // очередь id карточек
   revealed: false, // пользователь нажал «Показать ответ»
   finished: false,
+  plan: null, // план тренировки: источник слов, формат, размер
+  answerMode: ANSWER_MODES.TEXT,
+  choices: [], // варианты ответа для режима «выбор»
   session: { total: 0, answered: 0, correct: 0, wrong: 0, skipped: 0, learned: 0 },
 };
 
@@ -21,12 +25,29 @@ const learnSlice = createSlice({
       state.answer = '';
       state.revealed = false;
       state.finished = false;
+      state.plan = action.payload.plan ?? state.plan;
+      state.answerMode = action.payload.answerMode ?? state.answerMode;
+      state.choices = action.payload.choices ?? [];
     },
     answerChanged(state, action) {
       state.answer = action.payload;
     },
     answerRevealed(state) {
       state.revealed = true;
+    },
+    choicesSet(state, action) {
+      state.choices = action.payload ?? [];
+    },
+    // Вернуться к выбору: что учить
+    planCleared(state) {
+      state.plan = null;
+      state.currentCardId = null;
+      state.mode = null;
+      state.answer = '';
+      state.queue = [];
+      state.revealed = false;
+      state.finished = false;
+      state.choices = [];
     },
     sessionReset(state, action) {
       state.session = {
@@ -58,6 +79,8 @@ export const {
   learnStarted,
   answerChanged,
   answerRevealed,
+  choicesSet,
+  planCleared,
   sessionReset,
   sessionStatAdded,
   learnFinished,
