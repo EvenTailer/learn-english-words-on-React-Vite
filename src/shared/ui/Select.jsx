@@ -3,7 +3,7 @@ import Icon from './Icon';
 import styles from './Select.module.css';
 
 /**
- * Нативный выпадающий список. onChange получает ЗНАЧЕНИЕ (не event).
+ * Нативный выпадающий набор. onChange получает ЗНАЧЕНИЕ (не event).
  */
 export default function Select({
   label,

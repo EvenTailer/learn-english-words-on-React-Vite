@@ -11,14 +11,14 @@ const wordOf = (list, englishWord) =>
   list.words.find((word) => word.englishWord === englishWord);
 
 describe('listsSlice', () => {
-  it('создаёт пустой список', () => {
+  it('создаёт пустой набор', () => {
     const state = reducer(undefined, listCreated('Еда'));
     expect(state.items).toHaveLength(1);
     expect(state.items[0].name).toBe('Еда');
     expect(state.items[0].words).toHaveLength(0);
   });
 
-  it('добавляет слова в список', () => {
+  it('добавляет слова в набор', () => {
     let state = reducer(undefined, listCreated('Еда'));
     const { id } = state.items[0];
     state = reducer(
@@ -58,7 +58,7 @@ describe('listsSlice', () => {
     expect(state.items[0].words).toHaveLength(0);
   });
 
-  it('переименовывает и удаляет список', () => {
+  it('переименовывает и удаляет набор', () => {
     let state = reducer(undefined, listCreated('Еда'));
     const { id } = state.items[0];
     state = reducer(state, listRenamed({ id, name: '  Кухня  ' }));

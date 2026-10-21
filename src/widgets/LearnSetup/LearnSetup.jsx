@@ -45,7 +45,7 @@ export default function LearnSetup() {
   const [answerMode, setAnswerMode] = useState(ANSWER_MODES.TEXT);
   const [directionChoice, setDirectionChoice] = useState(direction);
 
-  // Списки приезжают из persist позже — берём первый, если ещё не выбран
+  // Наборы приезжают из persist позже — берём первый, если ещё не выбран
   const activeListId = listId || lists[0]?.id || '';
 
   // Наборы, слова которых уже есть в словаре
@@ -170,7 +170,7 @@ export default function LearnSetup() {
         {source === LEARN_SOURCES.LIST ? (
           lists.length > 0 ? (
             <Select
-              label="Свой список"
+              label="Свой набор"
               value={activeListId}
               options={listOptions}
               onChange={setListId}
@@ -178,7 +178,7 @@ export default function LearnSetup() {
             />
           ) : (
             <p className={styles.hint}>
-              Своих списков пока нет. Соберите список на странице «Наборы» или
+              Своих списков пока нет. Соберите набор на странице «Наборы» или
               добавьте слова из «Хранилища».
             </p>
           )

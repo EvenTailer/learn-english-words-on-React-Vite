@@ -250,6 +250,7 @@ describe('revealAnswer', () => {
 
     expect(store.getState().learn.revealed).toBe(true);
     expect(store.getState().learn.currentCardId).toBe(before);
-    expect(store.getState().ui.toast.type).toBe('info');
+    // ответ показывается прямо на карточке — тост больше не нужен
+    expect(store.getState().learn.revealed).toBe(true);
   });
 });

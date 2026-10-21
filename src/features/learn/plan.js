@@ -9,7 +9,7 @@ export const LEARN_SOURCES = {
   DUE: 'due', // к повторению по расписанию
   ERRORS: 'errors', // слова, где были ошибки
   NEW: 'new', // ещё не начатые
-  LIST: 'list', // свой список слов
+  LIST: 'list', // свой набор слов
   SET: 'set', // готовый набор
 };
 
@@ -18,7 +18,7 @@ export const SOURCE_OPTIONS = [
   { value: LEARN_SOURCES.DUE, label: 'К повторению' },
   { value: LEARN_SOURCES.ERRORS, label: 'Только ошибки' },
   { value: LEARN_SOURCES.NEW, label: 'Только новые' },
-  { value: LEARN_SOURCES.LIST, label: 'Мои списки' },
+  { value: LEARN_SOURCES.LIST, label: 'Мои наборы' },
   { value: LEARN_SOURCES.SET, label: 'Готовые наборы' },
 ];
 

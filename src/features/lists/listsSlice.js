@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { createId } from '../../shared/lib/id';
 
 // Свои списки слов: пользователь собирает тематические наборы вручную.
-// Слова списка хранятся словами, а не id карточек: список живёт независимо
+// Слова списка хранятся словами, а не id карточек: набор живёт независимо
 // от карточки в словаре и переживает её пересоздание.
 const initialState = {
   items: [], // { id, name, words: [{ englishWord, russianWord, phonetic, definition, linkImg }], createdAt }

@@ -96,7 +96,7 @@ export default function WordCard({
             {onAddToList ? (
               <IconButton
                 icon={<Icon name="list" size={20} />}
-                label={`Добавить ${word} в список`}
+                label={`Добавить ${word} в набор`}
                 variant="ghost"
                 onClick={() => onAddToList(card)}
               />

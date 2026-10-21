@@ -227,7 +227,7 @@ export default function AddPage() {
     );
     dispatch(wordAdded({ englishWord: english, russianWord: russian }));
 
-    // Кладём слово в выбранный свой список
+    // Кладём слово в выбранный свой набор
     if (listId) {
       dispatch(
         wordsAddedToList({
@@ -357,7 +357,7 @@ export default function AddPage() {
 
             {lists.length > 0 ? (
               <Select
-                label="Добавить в список"
+                label="Добавить в набор"
                 value={listId}
                 options={[
                   { value: '', label: 'Без списка' },
@@ -367,7 +367,7 @@ export default function AddPage() {
                   })),
                 ]}
                 onChange={setListId}
-                hint="Слово попадёт в свой список и в словарь"
+                hint="Слово попадёт в свой набор и в словарь"
               />
             ) : null}
 

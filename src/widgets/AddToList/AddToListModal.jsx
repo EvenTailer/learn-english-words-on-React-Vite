@@ -11,7 +11,7 @@ import Modal from '../../shared/ui/Modal';
 import styles from './AddToListModal.module.css';
 
 /**
- * Окно «Добавить в список»: выбираем свои списки для слова.
+ * Окно «Добавить в набор»: выбираем свои списки для слова.
  * Слово добавляется сразу, если его ещё нет.
  */
 export default function AddToListModal({ card, open, onClose }) {
@@ -49,7 +49,7 @@ export default function AddToListModal({ card, open, onClose }) {
 
   const handleSave = () => {
     if (selected.length === 0) {
-      dispatch(toastShown({ message: 'Ни один список не выбран', type: 'info' }));
+      dispatch(toastShown({ message: 'Ни один набор не выбран', type: 'info' }));
       onClose();
       return;
     }
@@ -78,7 +78,7 @@ export default function AddToListModal({ card, open, onClose }) {
   return (
     <Modal
       open={open}
-      title="Добавить в список"
+      title="Добавить в набор"
       onClose={onClose}
       footer={
         <div className={styles.actions}>
@@ -99,11 +99,11 @@ export default function AddToListModal({ card, open, onClose }) {
       {lists.length === 0 ? (
         <EmptyState
           title="Своих списков нет"
-          description="Создайте список на странице «Наборы» — там есть вкладка «Мои списки»."
+          description="Создайте набор на странице «Наборы» — там есть вкладка «Мои наборы»."
           icon={<Icon name="list" size={28} />}
         />
       ) : (
-        <div className={styles.chips} role="group" aria-label="Списки">
+        <div className={styles.chips} role="group" aria-label="Наборы">
           {lists.map((list) => (
             <Chip
               key={list.id}

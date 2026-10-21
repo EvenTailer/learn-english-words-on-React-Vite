@@ -51,7 +51,7 @@ describe('selectPool', () => {
     expect(pool.map((card) => card.id)).toEqual(['c']);
   });
 
-  it('в режиме «свой список» берёт слова из списка', () => {
+  it('в режиме «свой набор» берёт слова из списка', () => {
     const pool = selectPool(CARDS, {
       progressMap,
       plan: { ...DEFAULT_PLAN, source: LEARN_SOURCES.LIST },

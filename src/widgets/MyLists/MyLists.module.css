@@ -20,14 +20,14 @@
 
 .title {
   margin: 0;
-  font-size: var(--fs-24);
+  font-size: var(--text-h2);
   font-weight: var(--fw-bold);
   color: var(--text-1);
 }
 
 .subtitle {
   margin: 0;
-  font-size: var(--fs-14);
+  font-size: var(--text-label);
   color: var(--text-2);
 }
 
@@ -59,7 +59,7 @@
 
 .name {
   margin: 0;
-  font-size: var(--fs-18);
+  font-size: var(--text-h3);
   font-weight: var(--fw-semibold);
   color: var(--text-1);
   overflow-wrap: anywhere;
@@ -67,7 +67,7 @@
 
 .meta {
   margin: 0;
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   color: var(--text-3);
 }
 

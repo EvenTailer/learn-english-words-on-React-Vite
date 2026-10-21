@@ -9,7 +9,7 @@ import styles from './SetCreateModal.module.css';
 
 /**
  * Окно создания набора слов: название, описание.
- * Одно окно на всё приложение — и страница наборов, и список моих наборов.
+ * Одно окно на всё приложение — и страница наборов, и набор моих наборов.
  */
 export default function SetCreateModal({ open, onClose, onCreated }) {
   const dispatch = useAppDispatch();
@@ -60,7 +60,7 @@ export default function SetCreateModal({ open, onClose, onCreated }) {
           autoComplete="off"
         />
         <p className={styles.hint}>
-          Слова добавляются из «Хранилища» — кнопка «в список» на карточке.
+          Слова добавляются из «Хранилища» — кнопка «в набор» на карточке.
         </p>
       </div>
     </Modal>

@@ -29,7 +29,7 @@ import { pickFromQueue } from './session';
 const correctAnswerOf = (card, mode) =>
   mode === 'eng' ? card.russianWord : card.englishWord;
 
-// Слова выбранного своего списка — для источника «Мои списки»
+// Слова выбранного своего списка — для источника «Мои наборы»
 const listWordsOf = (state, plan) => {
   if (plan.source !== LEARN_SOURCES.LIST) return [];
   const list = state.lists?.items?.find((item) => item.id === plan.listId);
@@ -230,16 +230,11 @@ export const skipCard = () => (dispatch, getState) => {
 
 export const revealAnswer = () => (dispatch, getState) => {
   const state = getState();
-  const { currentCardId, mode } = state.learn;
+  const { currentCardId } = state.learn;
   const card = selectCards(state).find((item) => item.id === currentCardId);
   if (!card) return;
+  // Ответ показывается прямо на карточке — тост не нужен
   dispatch(answerRevealed());
-  dispatch(
-    toastShown({
-      message: `Правильный ответ: ${correctAnswerOf(card, mode)}`,
-      type: 'info',
-    })
-  );
 };
 
 // Выбран вариант ответа — подставляем его в поле, проверку запускает пользователь

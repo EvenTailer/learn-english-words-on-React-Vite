@@ -62,7 +62,7 @@ export default function MyLists({ onCreate }) {
   const handleDelete = () => {
     if (!pendingList) return;
     dispatch(listDeleted(pendingList.id));
-    dispatch(toastShown({ message: 'Список удалён', type: 'info' }));
+    dispatch(toastShown({ message: 'Набор удалён', type: 'info' }));
     setPendingDeleteId(null);
   };
 
@@ -99,7 +99,7 @@ export default function MyLists({ onCreate }) {
     <div className={styles.wrap}>
       <header className={styles.header}>
         <div className={styles.headings}>
-          <h2 className={styles.title}>Мои списки</h2>
+          <h2 className={styles.title}>Мои наборы</h2>
           <p className={styles.subtitle}>
             Соберите свои тематические наборы и учите по ним
           </p>
@@ -109,14 +109,14 @@ export default function MyLists({ onCreate }) {
           icon={<Icon name="plus" size={20} />}
           onClick={handleCreate}
         >
-          Новый список
+          Новый набор
         </Button>
       </header>
 
       {lists.length === 0 ? (
         <EmptyState
           title="Своих списков пока нет"
-          description="Создайте список и добавляйте в него слова из «Хранилища» или со страницы «Добавить»."
+          description="Создайте набор и добавляйте в него слова из «Хранилища» или со страницы «Добавить»."
           icon={<Icon name="list" size={32} />}
           action={
             <Button
@@ -124,7 +124,7 @@ export default function MyLists({ onCreate }) {
               icon={<Icon name="plus" size={20} />}
               onClick={handleCreate}
             >
-              Создать список
+              Создать набор
             </Button>
           }
         />
@@ -162,7 +162,7 @@ export default function MyLists({ onCreate }) {
                     <div className={styles.cardActions}>
                       <IconButton
                         icon={<Icon name="edit" size={18} />}
-                        label={`Переименовать список ${list.name}`}
+                        label={`Переименовать набор ${list.name}`}
                         variant="ghost"
                         onClick={() => {
                           setEditingId(list.id);
@@ -171,7 +171,7 @@ export default function MyLists({ onCreate }) {
                       />
                       <IconButton
                         icon={<Icon name="trash" size={18} />}
-                        label={`Удалить список ${list.name}`}
+                        label={`Удалить набор ${list.name}`}
                         variant="danger"
                         onClick={() => setPendingDeleteId(list.id)}
                       />
@@ -182,8 +182,8 @@ export default function MyLists({ onCreate }) {
 
               {list.words.length === 0 ? (
                 <p className={styles.empty}>
-                  Список пуст. Добавьте слова из «Хранилища» — там есть кнопка
-                  «в список».
+                  Набор пуст. Добавьте слова из «Хранилища» — там есть кнопка
+                  «в набор».
                 </p>
               ) : (
                 <ul className={styles.words}>
@@ -227,7 +227,7 @@ export default function MyLists({ onCreate }) {
 
       <ConfirmDialog
         open={Boolean(pendingList)}
-        title="Удалить список?"
+        title="Удалить набор?"
         description={`«${pendingList?.name ?? ''}» будет удалён вместе со словами`}
         confirmLabel="Удалить"
         destructive
