@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { describe, expect, it } from 'vitest';
 import cardsReducer from '../words/wordsSlice';
-import learnReducer, { answerChanged } from './learnSlice';
+import learnReducer, { answerChanged, learnStarted } from './learnSlice';
 import { checkAnswer, revealAnswer, skipCard, startLearn } from './learnThunks';
 
 const CARDS = [
@@ -90,10 +90,20 @@ describe('checkAnswer', () => {
 
   it('принимает вариант ответа из карточки', () => {
     const store = makeStore([
-      { id: 'a', englishWord: 'lion', russianWord: 'лев/львы', linkImg: '', count: 0 },
+      {
+        id: 'a',
+        englishWord: 'lion',
+        russianWord: 'лев/львы',
+        linkImg: '',
+        count: 0,
+      },
     ]);
     store.dispatch(startLearn());
+    // фиксируем режим: показываем английское слово, ждём русский перевод
+    store.dispatch(learnStarted({ id: 'a', mode: 'eng', queue: ['a'] }));
+
     answer(store, 'львы');
+
     expect(store.getState().cards.items[0].count).toBe(1);
   });
 
