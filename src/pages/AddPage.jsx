@@ -12,10 +12,10 @@ import { VOICE_ERRORS } from '../shared/lib/voice';
 import useVoiceInput from '../shared/hooks/useVoiceInput';
 import Button from '../shared/ui/Button';
 import Card from '../shared/ui/Card';
+import Chip from '../shared/ui/Chip';
 import Icon from '../shared/ui/Icon';
 import IconButton from '../shared/ui/IconButton';
 import Input from '../shared/ui/Input';
-import Chip from '../shared/ui/Chip';
 import SetCreateModal from '../widgets/SetCreateModal/SetCreateModal';
 import WordCard from '../widgets/WordCard/WordCard';
 import styles from './AddPage.module.css';
@@ -36,13 +36,17 @@ export default function AddPage() {
   const [phonetic, setPhonetic] = useState('');
   const [definition, setDefinition] = useState('');
   const [example, setExample] = useState('');
+  const [partOfSpeech, setPartOfSpeech] = useState('');
   const [imageSource, setImageSource] = useState('');
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [englishError, setEnglishError] = useState('');
   const [russianError, setRussianError] = useState('');
+  const [lookupError, setLookupError] = useState('');
   const [listId, setListId] = useState('');
   const [isCreatingSet, setIsCreatingSet] = useState(false);
+  const [showImageBlock, setShowImageBlock] = useState(false);
+  const [justAdded, setJustAdded] = useState('');
 
   const englishRef = useRef(null);
   const russianRef = useRef(null);
@@ -97,6 +101,7 @@ export default function AddPage() {
   const handleEnglishChange = (value) => {
     setEnglishWord(value);
     if (englishError) setEnglishError('');
+    if (lookupError) setLookupError('');
   };
 
   const handleRussianChange = (value) => {
@@ -119,6 +124,8 @@ export default function AddPage() {
       return;
     }
 
+    setLookupError('');
+
     dispatch(lookupWord(word))
       .unwrap()
       .then((result) => {
@@ -127,10 +134,17 @@ export default function AddPage() {
         setPhonetic(result.phonetic ?? '');
         setDefinition(result.definition ?? '');
         setExample(result.example ?? '');
+        setPartOfSpeech(result.partOfSpeech ?? '');
         setLinkImg((prev) => (prev.trim() ? prev : result.imageUrl ?? ''));
         setImageSource(result.imageSource ?? '');
+        if (!result.russianWord) {
+          setLookupError('Слово найдено, но перевода нет — впишите его сами');
+        }
       })
       .catch((error) => {
+        setLookupError(
+          String(error?.message ?? error) || 'Не получилось найти слово'
+        );
         dispatch(
           toastShown({
             message: String(error?.message ?? error),
@@ -165,16 +179,20 @@ export default function AddPage() {
     setPhonetic('');
     setDefinition('');
     setExample('');
+    setPartOfSpeech('');
     setImageSource('');
     setFile(null);
     setPreviewUrl('');
     setEnglishError('');
     setRussianError('');
+    setLookupError('');
     setListId('');
+    setShowImageBlock(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event) => {
+    event?.preventDefault();
     const english = englishWord.trim();
     const russian = russianWord.trim();
 
@@ -205,12 +223,14 @@ export default function AddPage() {
     // Слово уже есть — не добавляем второй раз
     const exists = cards.some(
       (card) =>
-        String(card.englishWord ?? '').trim().toLowerCase() === english.toLowerCase()
+        String(card.englishWord ?? '').trim().toLowerCase() ===
+        english.toLowerCase()
     );
     if (exists) {
       dispatch(
         toastShown({ message: 'Слово уже в словаре', type: 'info' })
       );
+      setEnglishError('Это слово уже есть в словаре');
       return;
     }
 
@@ -248,63 +268,72 @@ export default function AddPage() {
     }
 
     dispatch(toastShown({ message: 'Слово добавлено', type: 'success' }));
+    setJustAdded(english);
 
     resetForm();
+    englishRef.current?.focus();
   };
+
+  const found = Boolean(phonetic || definition || imageSource);
 
   return (
     <div className={styles.page}>
       <div className={styles.layout}>
-        <Card as="section" padding="lg" className={styles.formCard}>
+        <form
+          className={styles.formCard}
+          onSubmit={handleSubmit}
+          noValidate
+          aria-label="Добавление слова"
+        >
           <header className={styles.headings}>
             <h1 className={styles.title}>Добавить слово</h1>
             <p className={styles.subtitle}>
-              Слово попадёт в словарь и в тренажёр
+              Слово попадёт в словарь и в тренировку
             </p>
           </header>
 
-          <div className={styles.form}>
-            <div className={styles.lookupRow}>
-              <div className={styles.inputRow}>
-                <Input
-                  label="Английское слово"
-                  value={englishWord}
-                  onChange={handleEnglishChange}
-                  placeholder="Например: fantastic"
-                  error={englishError}
-                  inputRef={englishRef}
-                  required
-                  autoComplete="off"
+          {justAdded ? (
+            <p className={styles.added} role="status">
+              <Icon name="check" size={18} />
+              «{justAdded}» в словаре. Можно добавить ещё.
+            </p>
+          ) : null}
+
+          {/* Шаг 1 — найти слово */}
+          <Card padding="md" className={styles.step}>
+            <h2 className={styles.stepTitle}>
+              <span className={styles.stepNumber}>1</span>
+              Найдите слово
+            </h2>
+
+            <div className={styles.inputRow}>
+              <Input
+                label="Английское слово"
+                value={englishWord}
+                onChange={handleEnglishChange}
+                placeholder="Например: fantastic"
+                error={englishError}
+                inputRef={englishRef}
+                autoComplete="off"
+              />
+              {englishVoice.supported ? (
+                <IconButton
+                  icon={
+                    <Icon
+                      name={englishVoice.listening ? 'mic-off' : 'mic'}
+                      size={20}
+                    />
+                  }
+                  label={
+                    englishVoice.listening
+                      ? 'Остановить запись'
+                      : 'Продиктовать слово'
+                  }
+                  variant={englishVoice.listening ? 'danger' : 'accent'}
+                  onClick={englishVoice.toggle}
+                  className={styles.voiceButton}
                 />
-                {englishVoice.supported ? (
-                  <IconButton
-                    icon={
-                      <Icon
-                        name={englishVoice.listening ? 'mic-off' : 'mic'}
-                        size={20}
-                      />
-                    }
-                    label={
-                      englishVoice.listening
-                        ? 'Остановить запись'
-                        : 'Продиктовать слово'
-                    }
-                    variant={englishVoice.listening ? 'danger' : 'accent'}
-                    onClick={englishVoice.toggle}
-                    className={styles.voiceButton}
-                  />
-                ) : null}
-              </div>
-              <Button
-                variant="secondary"
-                onClick={handleLookup}
-                loading={lookupStatus === 'loading'}
-                disabled={!englishWord.trim()}
-                icon={<Icon name="search" size={20} />}
-                className={styles.lookupButton}
-              >
-                Найти в словаре
-              </Button>
+              ) : null}
             </div>
 
             {suggestions.length > 0 ? (
@@ -329,6 +358,62 @@ export default function AddPage() {
               </ul>
             ) : null}
 
+            <Button
+              variant="primary"
+              type="button"
+              fullWidth
+              onClick={handleLookup}
+              loading={lookupStatus === 'loading'}
+              disabled={!englishWord.trim()}
+              icon={<Icon name="search" size={20} />}
+            >
+              Найти в словаре
+            </Button>
+
+            {lookupError ? (
+              <p className={styles.lookupError} role="status">
+                {lookupError}
+              </p>
+            ) : null}
+
+            {/* Что нашлось — сразу видно, что словарь дал */}
+            {found ? (
+              <div className={styles.found}>
+                {linkImg ? (
+                  <img
+                    className={styles.foundImage}
+                    src={linkImg}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : null}
+                <div className={styles.foundBody}>
+                  <p className={styles.foundMeta}>
+                    {[phonetic, partOfSpeech].filter(Boolean).join(' · ')}
+                  </p>
+                  {definition ? (
+                    <p className={styles.foundDefinition}>{definition}</p>
+                  ) : null}
+                  {imageSource ? (
+                    <p className={styles.foundSource}>Источник: {imageSource}</p>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            <p className={styles.stepHint}>
+              Или впишите перевод вручную — следующий шаг
+            </p>
+          </Card>
+
+          {/* Шаг 2 — перевод */}
+          <Card padding="md" className={styles.step}>
+            <h2 className={styles.stepTitle}>
+              <span className={styles.stepNumber}>2</span>
+              Перевод
+            </h2>
+
             <div className={styles.inputRow}>
               <Input
                 label="Перевод"
@@ -337,13 +422,15 @@ export default function AddPage() {
                 placeholder="Например: фантастический"
                 error={russianError}
                 inputRef={russianRef}
-                required
                 autoComplete="off"
               />
               {russianVoice.supported ? (
                 <IconButton
                   icon={
-                    <Icon name={russianVoice.listening ? 'mic-off' : 'mic'} size={20} />
+                    <Icon
+                      name={russianVoice.listening ? 'mic-off' : 'mic'}
+                      size={20}
+                    />
                   }
                   label={
                     russianVoice.listening
@@ -357,41 +444,70 @@ export default function AddPage() {
               ) : null}
             </div>
 
-            <div className={styles.setBlock}>
-              <span className={styles.setLabel}>Добавить в набор</span>
-              <div className={styles.setChips} role="group" aria-label="Набор для слова">
-                {lists.map((list) => (
-                  <Chip
-                    key={list.id}
-                    label={`${list.name} (${list.words.length})`}
-                    active={listId === list.id}
-                    onClick={() =>
-                      setListId(listId === list.id ? '' : list.id)
-                    }
-                  />
-                ))}
-                <Chip
-                  label="+ Создать набор"
-                  onClick={() => setIsCreatingSet(true)}
-                />
-              </div>
-              <p className={styles.setHint}>
-                {lists.length === 0
-                  ? 'Слово попадёт в словарь. Набор можно создать здесь же'
-                  : 'Слово попадёт в выбранный набор и в словарь'}
+            {russianWord && !russianError ? (
+              <p className={styles.stepHint}>
+                {found ? 'Подставлено из словаря — можно изменить' : 'Проверьте перевод'}
               </p>
+            ) : null}
+          </Card>
+
+          {/* Шаг 3 — набор */}
+          <Card padding="md" className={styles.step}>
+            <h2 className={styles.stepTitle}>
+              <span className={styles.stepNumber}>3</span>
+              Набор
+              <span className={styles.stepOptional}>необязательно</span>
+            </h2>
+
+            <div className={styles.setChips} role="group" aria-label="Набор для слова">
+              {lists.map((list) => (
+                <Chip
+                  key={list.id}
+                  label={`${list.name} (${list.words.length})`}
+                  active={listId === list.id}
+                  onClick={() => setListId(listId === list.id ? '' : list.id)}
+                />
+              ))}
+              <Chip
+                label="+ Создать набор"
+                onClick={() => setIsCreatingSet(true)}
+              />
             </div>
 
-            <div className={styles.imageBlock}>
-              <Input
-                label="Ссылка на картинку"
-                value={linkImg}
-                onChange={setLinkImg}
-                placeholder="https://... или загрузите файл"
-                autoComplete="off"
-              />
+            <p className={styles.stepHint}>
+              {lists.length === 0
+                ? 'Слово попадёт только в словарь. Набор можно создать здесь же'
+                : listId
+                  ? 'Слово попадёт в этот набор и в словарь'
+                  : 'Слово попадёт только в словарь'}
+            </p>
+          </Card>
 
-              <div className={styles.imageRow}>
+          {/* Картинка — второстепенное, по умолчанию свёрнуто */}
+          <div className={styles.imageBlock}>
+            <button
+              type="button"
+              className={styles.imageToggle}
+              onClick={() => setShowImageBlock((prev) => !prev)}
+              aria-expanded={showImageBlock}
+            >
+              <Icon
+                name={showImageBlock ? 'chevron-down' : 'plus'}
+                size={18}
+              />
+              Своя картинка
+              <span className={styles.imageToggleHint}>необязательно</span>
+            </button>
+
+            {showImageBlock ? (
+              <div className={styles.imageFields}>
+                <Input
+                  label="Ссылка на картинку"
+                  value={linkImg}
+                  onChange={setLinkImg}
+                  placeholder="https://..."
+                  autoComplete="off"
+                />
                 <Button
                   variant="secondary"
                   onClick={() => fileInputRef.current?.click()}
@@ -399,7 +515,6 @@ export default function AddPage() {
                 >
                   Выбрать файл
                 </Button>
-
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -407,40 +522,40 @@ export default function AddPage() {
                   className="visually-hidden"
                   onChange={handleFileChange}
                 />
-              </div>
-
-              {previewUrl ? (
-                <div className={styles.previewBox}>
+                {previewUrl ? (
                   <img
                     className={styles.previewImage}
                     src={previewUrl}
                     alt="Предпросмотр выбранного файла"
                   />
-                </div>
-              ) : null}
-
-              {imageSource ? (
-                <p className={styles.imageSource}>Источник картинки: {imageSource}</p>
-              ) : null}
-            </div>
-
-            <div className={styles.actions}>
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                icon={<Icon name="plus" size={20} />}
-              >
-                Добавить карточку
-              </Button>
-              <Button variant="ghost" onClick={resetForm}>
-                Очистить
-              </Button>
-            </div>
+                ) : null}
+                {imageSource ? (
+                  <p className={styles.stepHint}>
+                    Сейчас в карточке картинка из: {imageSource}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
-        </Card>
 
-        <aside className={styles.preview} aria-label="Предпросмотр карточки">
-          <h2 className={styles.previewTitle}>Предпросмотр</h2>
+          <div className={styles.actions}>
+            <Button
+              variant="primary"
+              type="submit"
+              size="lg"
+              fullWidth
+              icon={<Icon name="plus" size={20} />}
+            >
+              Добавить в словарь
+            </Button>
+            <Button variant="ghost" type="button" onClick={resetForm}>
+              Очистить
+            </Button>
+          </div>
+        </form>
+
+        <aside className={styles.preview} aria-label="Предпросмотр">
+          <h2 className={styles.previewTitle}>Так это будет выглядеть</h2>
           <WordCard
             variant="preview"
             status="new"

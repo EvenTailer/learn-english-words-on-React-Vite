@@ -13,10 +13,88 @@
   gap: var(--gap-stack);
 }
 
+/* Форма — сама форма, без лишней карточки вокруг */
 .formCard {
   display: flex;
   flex-direction: column;
   gap: var(--gap-stack);
+}
+
+.headings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-1);
+  font-size: var(--text-h1);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--text-lead);
+}
+
+/* Сообщение об успешном добавлении */
+.added {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--success-border);
+  border-radius: var(--radius-md);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: var(--text-label);
+}
+
+/* Шаг формы */
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stepTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--text-1);
+}
+
+.stepNumber {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+}
+
+.stepOptional {
+  font-size: var(--text-label);
+  font-weight: var(--fw-regular);
+  color: var(--text-3);
+}
+
+.stepHint {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--lh-relaxed);
+  color: var(--text-3);
 }
 
 /* Поле и кнопка голосового ввода в одну строку */
@@ -37,80 +115,65 @@
   flex: 0 0 auto;
 }
 
-/* Блок «Добавить в набор»: чипы вместо выпадающего списка */
-.setBlock {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.setLabel {
-  font-size: var(--text-label);
-  color: var(--text-2);
-}
-
-.setChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.setHint {
+.lookupError {
   margin: 0;
   font-size: var(--text-label);
   line-height: var(--lh-relaxed);
-  color: var(--text-3);
+  color: var(--danger);
 }
 
-.headings {
+/* Что нашлось в словаре */
+.found {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.foundImage {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+}
+
+.foundBody {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-}
-
-.title {
-  margin: 0;
-  color: var(--text-1);
-  font-size: var(--fs-32);
-  font-weight: var(--fw-bold);
-  line-height: var(--lh-tight);
-  letter-spacing: var(--ls-tight);
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--text-2);
-  font-size: var(--fs-18);
-  line-height: var(--lh-normal);
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-stack);
-}
-
-/* Поле + кнопка поиска */
-.lookupRow {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--gap-inline);
-}
-
-.lookupRow > * {
   min-width: 0;
 }
 
-.lookupButton {
-  flex: none;
+.foundMeta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--text-2);
 }
 
-/* Подсказки из словаря */
+.foundDefinition {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--lh-relaxed);
+  color: var(--text-1);
+}
+
+.foundSource {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-3);
+}
+
+/* Подсказки из своего словаря */
 .suggestions {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  margin: calc(var(--space-5) * -1) 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -120,103 +183,119 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  min-height: var(--tap-min);
   padding: var(--space-2) var(--space-3);
-  background: var(--surface-2);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-1);
   font-family: inherit;
-  font-size: var(--fs-14);
+  font-size: var(--text-label);
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease-standard),
-    border-color var(--dur-fast) var(--ease-standard),
-    color var(--dur-fast) var(--ease-standard);
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .suggestion:hover {
-  background: var(--surface-3);
   border-color: var(--accent-border);
-  color: var(--text-1);
 }
 
 .suggestionEn {
-  color: var(--text-1);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-medium);
 }
 
 .suggestionRu {
   color: var(--text-2);
 }
 
-/* Картинка */
-.imageBlock {
+/* Наборы */
+.setChips {
   display: flex;
-  flex-direction: column;
-  gap: var(--gap-tight);
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.imageRow {
+/* Картинка — свёрнутый блок */
+.imageBlock {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+}
+
+.imageToggle {
   display: flex;
   align-items: center;
-  gap: var(--gap-inline);
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: var(--text-body);
+  font-weight: var(--fw-medium);
+  text-align: left;
+  cursor: pointer;
 }
 
-.previewBox {
-  width: 120px;
-  height: 120px;
-  overflow: hidden;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+.imageToggleHint {
+  font-size: var(--text-label);
+  font-weight: var(--fw-regular);
+  color: var(--text-3);
+}
+
+.imageFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
 }
 
 .previewImage {
-  width: 100%;
-  height: 100%;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
 }
 
-.imageSource {
-  margin: 0;
-  color: var(--text-3);
-  font-size: var(--fs-14);
-}
-
-/* Кнопки */
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--gap-inline);
-  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
-/* Предпросмотр */
+/* Предпросмотр справа */
 .preview {
+  position: sticky;
+  top: var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: var(--gap-tight);
+  gap: var(--space-3);
 }
 
 .previewTitle {
   margin: 0;
-  color: var(--text-3);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
+  color: var(--text-2);
+  font-size: var(--text-label);
+  font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-caps);
   text-transform: uppercase;
 }
 
 @media (max-width: 900px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .preview {
+    position: static;
+    order: -1;
   }
 }
 
 @media (max-width: 767px) {
   .page {
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-6) var(--page-gutter);
   }
 
   .title {
@@ -224,15 +303,11 @@
   }
 
   .subtitle {
-    font-size: var(--fs-16);
+    font-size: var(--text-body);
   }
 
-  .lookupRow {
+  .actions {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .actions > * {
-    width: 100%;
   }
 }
