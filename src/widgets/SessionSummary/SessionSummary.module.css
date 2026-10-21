@@ -60,3 +60,45 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Список ошибок: что повторить */
+.mistakes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+}
+
+.mistakesTitle {
+  margin: 0;
+  font-size: var(--text-label);
+  font-weight: var(--fw-semibold);
+  color: var(--danger);
+}
+
+.mistakesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mistake {
+  display: flex;
+  gap: var(--space-2);
+  font-size: var(--text-label);
+}
+
+.mistakeEn {
+  font-weight: var(--fw-semibold);
+  color: var(--text-1);
+}
+
+.mistakeRu {
+  color: var(--text-2);
+}

@@ -12,7 +12,15 @@ const initialState = {
   answerMode: ANSWER_MODES.TEXT,
   choices: [], // варианты ответа для режима «выбор»
   verdict: null, // результат последнего ответа: { correct, answer, mastered }
-  session: { total: 0, answered: 0, correct: 0, wrong: 0, skipped: 0, learned: 0 },
+  session: {
+    total: 0,
+    answered: 0,
+    correct: 0,
+    wrong: 0,
+    skipped: 0,
+    learned: 0,
+    wrongWords: [], // слова, где ошиблись: { englishWord, russianWord }
+  },
 };
 
 const learnSlice = createSlice({
@@ -68,12 +76,22 @@ const learnSlice = createSlice({
         wrong: 0,
         skipped: 0,
         learned: 0,
+        wrongWords: [],
       };
     },
     sessionStatAdded(state, action) {
       const { kind, value = 1 } = action.payload;
       if (kind === 'answered') state.session.answered += value;
       else if (kind in state.session) state.session[kind] += value;
+    },
+    // Слово, в котором ошиблись — показываем в итогах
+    sessionWrongWordAdded(state, action) {
+      const word = action.payload;
+      if (!word?.englishWord) return;
+      const exists = state.session.wrongWords.some(
+        (item) => item.englishWord === word.englishWord
+      );
+      if (!exists) state.session.wrongWords.push(word);
     },
     learnFinished(state) {
       state.currentCardId = null;
@@ -96,6 +114,7 @@ export const {
   planCleared,
   sessionReset,
   sessionStatAdded,
+  sessionWrongWordAdded,
   learnFinished,
 } = learnSlice.actions;
 

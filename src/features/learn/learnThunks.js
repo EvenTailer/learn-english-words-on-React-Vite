@@ -15,6 +15,7 @@ import {
   learnStarted,
   sessionReset,
   sessionStatAdded,
+  sessionWrongWordAdded,
 } from './learnSlice';
 import {
   ANSWER_MODES,
@@ -124,6 +125,12 @@ export const checkAnswer = () => (dispatch, getState) => {
     dispatch(statsIncremented({ date: toISODate(), wrong: 1 }));
     updateStreak(dispatch, getState);
     dispatch(sessionStatAdded({ kind: 'wrong' }));
+    dispatch(
+      sessionWrongWordAdded({
+        englishWord: card.englishWord,
+        russianWord: card.russianWord,
+      })
+    );
     dispatch(
       verdictSet({
         correct: false,

@@ -11,6 +11,7 @@ export default function SessionSummary({ session, onRestart, onHome, onChangePla
   const stats = session ?? {};
   const answered = stats.answered ?? 0;
   const total = stats.total ?? 0;
+  const wrongWords = stats.wrongWords ?? [];
 
   return (
     <Card variant="elevated" padding="lg" className={styles.summary}>
@@ -49,6 +50,20 @@ export default function SessionSummary({ session, onRestart, onHome, onChangePla
           label="Выучено"
         />
       </div>
+
+      {wrongWords.length > 0 ? (
+        <div className={styles.mistakes}>
+          <h3 className={styles.mistakesTitle}>Ошибки — повторим позже</h3>
+          <ul className={styles.mistakesList}>
+            {wrongWords.map((word) => (
+              <li key={word.englishWord} className={styles.mistake}>
+                <span className={styles.mistakeEn}>{word.englishWord}</span>
+                <span className={styles.mistakeRu}>{word.russianWord}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className={styles.actions}>
         <Button
