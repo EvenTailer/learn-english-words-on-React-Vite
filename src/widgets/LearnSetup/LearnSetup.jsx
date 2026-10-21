@@ -87,6 +87,40 @@ export default function LearnSetup() {
     selectedList,
   ]);
 
+  // Счётчики для каждого источника — видно, где есть слова, а где пусто
+  const sourceCounts = useMemo(() => {
+    const count = (sourceKey) =>
+      selectPool(cards, {
+        progressMap,
+        plan: {
+          source: sourceKey,
+          setKey,
+          listId: activeListId,
+          size: 'all',
+          direction: directionChoice,
+          answerMode,
+        },
+        listWords: selectedList?.words ?? [],
+      }).length;
+
+    return {
+      [LEARN_SOURCES.ALL]: count(LEARN_SOURCES.ALL),
+      [LEARN_SOURCES.DUE]: count(LEARN_SOURCES.DUE),
+      [LEARN_SOURCES.ERRORS]: count(LEARN_SOURCES.ERRORS),
+      [LEARN_SOURCES.NEW]: count(LEARN_SOURCES.NEW),
+      [LEARN_SOURCES.LIST]: count(LEARN_SOURCES.LIST),
+      [LEARN_SOURCES.SET]: count(LEARN_SOURCES.SET),
+    };
+  }, [
+    cards,
+    progressMap,
+    setKey,
+    activeListId,
+    directionChoice,
+    answerMode,
+    selectedList,
+  ]);
+
   const handleStart = () => {
     dispatch(
       startLearn({
@@ -126,6 +160,7 @@ export default function LearnSetup() {
             <Chip
               key={option.value}
               label={option.label}
+              count={sourceCounts[option.value]}
               active={source === option.value}
               onClick={() => setSource(option.value)}
             />
