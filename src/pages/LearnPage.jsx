@@ -71,7 +71,6 @@ export default function LearnPage() {
     const timer = setTimeout(() => setLastResult(null), RESULT_HIGHLIGHT_MS);
     return () => clearTimeout(timer);
   }, [lastResult]);
-
   // Уходя со страницы, закрываем план: в следующий раз «Учить» снова спросит,
   // что именно учить, а не продолжит прошлую сессию с того же места.
   // Ответы уже записаны в прогресс — ничто не теряется.
@@ -103,7 +102,10 @@ export default function LearnPage() {
       return;
     }
 
+    // Помечаем результат вместе с карточкой: подсветка не переносится
+    // на следующую карточку, если карточка сменилась
     setLastResult({
+      cardId: currentCard.id,
       type: isAnswerMatch(answer, correct) ? 'correct' : 'wrong',
     });
     dispatch(checkAnswer());

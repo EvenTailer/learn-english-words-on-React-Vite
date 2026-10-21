@@ -204,6 +204,7 @@ export default function StoragePage() {
                   card={card}
                   status={progress?.status ?? 'new'}
                   correct={progress?.correct ?? card.count ?? 0}
+                  streak={progress?.streak ?? 0}
                   onSpeak={(word) => speak(word)}
                   onDelete={() => setPendingDeleteId(card.id)}
                   onAddToList={(target) => setListTargetId(target.id)}

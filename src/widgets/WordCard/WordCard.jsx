@@ -19,6 +19,7 @@ export default function WordCard({
   card,
   status = 'new',
   correct,
+  streak,
   variant = 'grid',
   onSpeak,
   onDelete,
@@ -33,6 +34,10 @@ export default function WordCard({
   const phonetic = card?.phonetic ?? '';
   const definition = card?.definition ?? '';
   const level = card?.level ?? '';
+  // Показываем серию по расписанию: сколько верных ответов из пяти
+  const series = Number.isFinite(Number(streak))
+    ? Number(streak)
+    : Number(correct) || 0;
   const score = Number.isFinite(Number(correct))
     ? Number(correct)
     : Number(card?.count ?? 0) || 0;
@@ -72,10 +77,10 @@ export default function WordCard({
 
       {isPreview ? null : (
         <footer className={styles.footer}>
-          <span className={styles.score}>
+          <span className={styles.score} title={`Всего верных ответов: ${score}`}>
             <Icon name="check" size={16} />
-            <span className={styles.scoreValue}>{score}</span>
-            <span className={styles.scoreLabel}>верных</span>
+            <span className={styles.scoreValue}>{series}</span>
+            <span className={styles.scoreLabel}>из 5 по расписанию</span>
           </span>
 
           <div className={styles.actions}>

@@ -41,20 +41,24 @@ export default function LearnCard({
   const question = isAudio ? '' : showEnglish ? card.englishWord : card.russianWord;
   const correctAnswer = showEnglish ? card.russianWord : card.englishWord;
 
+  // Подсветка относится только к той карточке, которую отвечали
+  const result =
+    lastResult && lastResult.cardId === card.id ? lastResult : null;
+
   const resultClass =
-    lastResult?.type === 'correct'
+    result?.type === 'correct'
       ? styles.correct
-      : lastResult?.type === 'wrong'
+      : result?.type === 'wrong'
         ? styles.wrong
         : '';
 
   const choiceClass = (option) => {
     const classes = [styles.choice];
     if (answer === option) classes.push(styles.choiceSelected);
-    if (lastResult?.type === 'correct' && option === correctAnswer) {
+    if (result?.type === 'correct' && option === correctAnswer) {
       classes.push(styles.choiceCorrect);
     }
-    if (lastResult?.type === 'wrong' && answer === option) {
+    if (result?.type === 'wrong' && answer === option) {
       classes.push(styles.choiceWrong);
     }
     return classes.join(' ');
@@ -68,12 +72,6 @@ export default function LearnCard({
     >
       <div className={styles.top}>
         <div className={styles.topLeft}>
-          <IconButton
-            icon={<Icon name="arrow-left" size={20} />}
-            label="Выйти"
-            variant="ghost"
-            onClick={onExit}
-          />
           <button type="button" className={styles.exitButton} onClick={onExit}>
             Выйти
           </button>
@@ -82,12 +80,13 @@ export default function LearnCard({
           {isAudio ? 'АУДИО' : showEnglish ? 'ENGLISH' : 'RUSSIAN'}
         </Badge>
         {onChangePlan ? (
-          <IconButton
-            icon={<Icon name="list" size={20} />}
-            label="Сменить набор слов"
-            variant="ghost"
+          <button
+            type="button"
+            className={styles.exitButton}
             onClick={onChangePlan}
-          />
+          >
+            Сменить
+          </button>
         ) : null}
       </div>
 
