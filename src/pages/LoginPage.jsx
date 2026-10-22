@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/store/hooks';
 import {
   authErrorCleared,
@@ -21,6 +21,7 @@ const MODES = [
 export default function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { user, status, error } = useAppSelector((state) => state.auth);
 
@@ -30,8 +31,11 @@ export default function LoginPage() {
 
   // Вошедшему пользователю форма не нужна
   useEffect(() => {
-    if (user) navigate('/', { replace: true });
-  }, [user, navigate]);
+    if (!user) return;
+    const from = location.state?.from?.pathname;
+    const next = from && from !== '/login' ? from : '/';
+    navigate(next, { replace: true });
+  }, [user, navigate, location.state]);
 
   useEffect(() => () => dispatch(authErrorCleared()), [dispatch]);
 
@@ -109,8 +113,8 @@ export default function LoginPage() {
         </form>
 
         <p className={styles.footnote}>
-          Без аккаунта приложение работает как раньше: данные остаются в этом
-          браузере. Войдите, чтобы переносить их между устройствами.
+          Словарь открывается после входа. Если слова уже были в этом браузере,
+          а на сервере пусто, они сохранятся в аккаунт.
         </p>
       </Card>
     </div>

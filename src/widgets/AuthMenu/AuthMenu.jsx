@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks';
 import { logoutUser } from '../../features/auth/authSlice';
+import { toastShown } from '../../features/ui/toastSlice';
 import Button from '../../shared/ui/Button';
+import ConfirmDialog from '../../shared/ui/ConfirmDialog';
 import Icon from '../../shared/ui/Icon';
 import styles from './AuthMenu.module.css';
 
@@ -12,13 +14,23 @@ import styles from './AuthMenu.module.css';
  */
 export default function AuthMenu({ syncStatus }) {
   const dispatch = useAppDispatch();
-  const { user, token } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { user, token, conflict } = useAppSelector((state) => state.auth);
   const [busy, setBusy] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setBusy(true);
-    await dispatch(logoutUser());
+    dispatch(logoutUser({ token, hasConflict: Boolean(conflict) }));
+    setIsConfirming(false);
     setBusy(false);
+    navigate('/login', { replace: true });
+    dispatch(
+      toastShown({
+        message: 'Вы вышли из аккаунта',
+        type: 'info',
+      })
+    );
   };
 
   if (!token || !user) {
@@ -59,11 +71,20 @@ export default function AuthMenu({ syncStatus }) {
         variant="ghost"
         size="sm"
         loading={busy}
-        onClick={handleLogout}
+        onClick={() => setIsConfirming(true)}
         ariaLabel="Выйти из аккаунта"
       >
         Выйти
       </Button>
+
+      <ConfirmDialog
+        open={isConfirming}
+        title="Выйти из аккаунта?"
+        description="Откроется страница входа. Пока вы не войдёте снова, словарь закрыт и на сервер ничего не уйдёт."
+        confirmLabel="Выйти"
+        onConfirm={handleLogout}
+        onCancel={() => setIsConfirming(false)}
+      />
     </div>
   );
 }

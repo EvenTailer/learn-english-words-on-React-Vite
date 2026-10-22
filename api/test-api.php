@@ -68,15 +68,33 @@ $payload = [
 ];
 $r5 = request('PUT', '/api/sync.php', $payload, $token);
 check('сохранение данных', $r5['code'] === 200 && ($r5['body']['ok'] ?? false) === true, 'код ' . $r5['code']);
+$updatedAt = $r5['body']['updatedAt'] ?? null;
+check('сервер вернул метку версии', is_string($updatedAt) && $updatedAt !== '');
 
 // 6. Чтение данных
 $r6 = request('GET', '/api/sync.php', null, $token);
 check('чтение данных', $r6['code'] === 200 && count($r6['body']['payload']['cards'] ?? []) === 1, 'код ' . $r6['code']);
 
 // 7. Лишние поля не сохраняются
-$r7 = request('PUT', '/api/sync.php', $payload + ['hacker' => 'x'], $token);
+$r7 = request('PUT', '/api/sync.php', $payload + ['hacker' => 'x', 'updatedAt' => $updatedAt], $token);
 $r7b = request('GET', '/api/sync.php', null, $token);
-check('лишние поля отброшены', !isset($r7b['body']['payload']['hacker']));
+check('лишние поля отброшены', $r7['code'] === 200 && !isset($r7b['body']['payload']['hacker']), 'код ' . $r7['code']);
+
+// 7b. Старая метка не затирает свежие данные
+$stale = request('PUT', '/api/sync.php', [
+    'updatedAt' => '2000-01-01T00:00:00+00:00',
+    'cards' => [],
+    'progress' => [],
+    'stats' => [],
+    'lists' => [],
+    'settings' => [],
+], $token);
+$afterStale = request('GET', '/api/sync.php', null, $token);
+check(
+    'устаревшая копия отклонена',
+    $stale['code'] === 409 && count($afterStale['body']['payload']['cards'] ?? []) === 1,
+    'код ' . $stale['code']
+);
 
 // 8. Кто я
 $r8 = request('GET', '/api/me.php', null, $token);

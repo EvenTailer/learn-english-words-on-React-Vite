@@ -2,6 +2,7 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
+import RequireAuth from './RequireAuth';
 import Loader from '../shared/ui/Loader';
 
 // Каждая страница — отдельный чанк, грузится только когда на неё перешли
@@ -26,13 +27,18 @@ export const router = createBrowserRouter(
       // раскладка без пути — оборачивает все страницы шапкой и тостом
       element: <App />,
       children: [
-        { index: true, element: withSuspense(<HomePage />) },
-        { path: 'learn', element: withSuspense(<LearnPage />) },
-        { path: 'add', element: withSuspense(<AddPage />) },
-        { path: 'storage', element: withSuspense(<StoragePage />) },
-        { path: 'wordlists', element: withSuspense(<WordListsPage />) },
         { path: 'login', element: withSuspense(<LoginPage />) },
-        { path: '*', element: withSuspense(<NotFoundPage />) },
+        {
+          element: <RequireAuth />,
+          children: [
+            { index: true, element: withSuspense(<HomePage />) },
+            { path: 'learn', element: withSuspense(<LearnPage />) },
+            { path: 'add', element: withSuspense(<AddPage />) },
+            { path: 'storage', element: withSuspense(<StoragePage />) },
+            { path: 'wordlists', element: withSuspense(<WordListsPage />) },
+            { path: '*', element: withSuspense(<NotFoundPage />) },
+          ],
+        },
       ],
     },
   ],

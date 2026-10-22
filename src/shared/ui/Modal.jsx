@@ -18,6 +18,7 @@ export default function Modal({
   footer,
   size = 'md',
   closeOnBackdrop = true,
+  dismissible = true,
 }) {
   const titleId = useId();
   const dialogRef = useRef(null);
@@ -47,13 +48,15 @@ export default function Modal({
   if (!open) return null;
 
   const handleBackdropMouseDown = (event) => {
-    if (closeOnBackdrop && event.target === event.currentTarget) onClose();
+    if (dismissible && closeOnBackdrop && event.target === event.currentTarget) {
+      onClose();
+    }
   };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Escape') {
       event.stopPropagation();
-      onClose();
+      if (dismissible) onClose();
       return;
     }
 
@@ -98,15 +101,17 @@ export default function Modal({
           <h2 id={titleId} className={styles.title}>
             {title}
           </h2>
-          <button
-            type="button"
-            className={styles.close}
-            onClick={onClose}
-            aria-label="Закрыть"
-            title="Закрыть"
-          >
-            <Icon name="close" size={20} />
-          </button>
+          {dismissible ? (
+            <button
+              type="button"
+              className={styles.close}
+              onClick={onClose}
+              aria-label="Закрыть"
+              title="Закрыть"
+            >
+              <Icon name="close" size={20} />
+            </button>
+          ) : null}
         </header>
 
         <div className={styles.body}>{children}</div>

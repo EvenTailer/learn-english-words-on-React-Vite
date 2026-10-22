@@ -1,48 +1,96 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useAppSelector, useAppStore } from '../../app/store/hooks';
-import { fetchServerData, pushServerData } from '../lib/api';
-import { applySyncPayload, isEmptyPayload, selectSyncPayload } from '../lib/sync';
+import { useAppDispatch, useAppSelector, useAppStore } from '../../app/store/hooks';
+import { syncConflictDetected } from '../../features/auth/authSlice';
+import {
+  fetchServerData,
+  getDataOwnerId,
+  pushServerData,
+  setDataOwnerId,
+} from '../lib/api';
+import {
+  EMPTY_PAYLOAD,
+  applySyncPayload,
+  attachUpdatedAt,
+  reconcileSync,
+  selectSyncPayload,
+  setPendingServerPayload,
+  setServerUpdatedAt,
+  shouldPushSync,
+} from '../lib/sync';
 
 const PUSH_DELAY_MS = 3000;
 
 /**
  * Облачная синхронизация.
- * - при входе забираем данные с сервера (сервер — источник правды);
- *   если на сервере пусто — выкладываем локальные данные;
- * - каждое изменение в приложении уходит на сервер через 3 секунды тишины.
+ * Пока идёт сверка при входе и пока открыт конфликт — на сервер ничего не уходит.
+ * Чужой словарь в этом браузере на сервер другого аккаунта не отправляется.
  */
 export default function useCloudSync() {
   const store = useAppStore();
+  const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
-  // Состояние синхронизации живёт в сторе, а не в React: так его видно
-  // и шапке, и страницам, и не нужно дублировать в useState
-  const [status, setStatus] = useState('idle'); // idle | syncing | synced | error
+  const userId = useAppSelector((state) => state.auth.user?.id);
+  const forceSyncTick = useAppSelector((state) => state.auth.forceSyncTick);
+  const [status, setStatus] = useState('idle');
 
   const lastPushed = useRef(null);
   const timerRef = useRef(null);
+  const syncReady = useRef(false);
+  const pushing = useRef(false);
 
   const push = useCallback(async () => {
-    if (!token) return;
-    const payload = selectSyncPayload(store.getState());
+    const state = store.getState();
+    const payload = selectSyncPayload(state);
     const json = JSON.stringify(payload);
-    if (json === lastPushed.current) return;
+    if (
+      !syncReady.current ||
+      pushing.current ||
+      !shouldPushSync({
+        token: state.auth.token,
+        conflict: state.auth.conflict,
+        payloadJson: json,
+        lastPushed: lastPushed.current,
+      })
+    ) {
+      return;
+    }
 
+    pushing.current = true;
     try {
       setStatus('syncing');
-      await pushServerData(token, payload);
+      const data = await pushServerData(state.auth.token, attachUpdatedAt(payload));
+      setServerUpdatedAt(data?.updatedAt ?? null);
       lastPushed.current = json;
+      if (state.auth.user?.id) setDataOwnerId(state.auth.user.id);
       setStatus('synced');
-    } catch {
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      if (error?.status === 409) {
+        const serverPayload = error.data?.payload ?? null;
+        setServerUpdatedAt(error.data?.updatedAt ?? null);
+        setPendingServerPayload(serverPayload);
+        dispatch(
+          syncConflictDetected({
+            serverCards: serverPayload?.cards?.length ?? 0,
+            localCards: payload.cards?.length ?? 0,
+            updatedAt: error.data?.updatedAt ?? null,
+          })
+        );
+        setStatus('synced');
+        return;
+      }
       setStatus('error');
+    } finally {
+      pushing.current = false;
     }
-  }, [store, token]);
+  }, [store, dispatch]);
 
-  // Забор данных с сервера
+  // Сверка при входе. До её конца отправка закрыта.
   useEffect(() => {
-    if (!token) {
-      lastPushed.current = null;
-      return undefined;
-    }
+    syncReady.current = false;
+    lastPushed.current = null;
+
+    if (!token) return undefined;
 
     let cancelled = false;
 
@@ -52,31 +100,68 @@ export default function useCloudSync() {
         const data = await fetchServerData(token);
         if (cancelled) return;
 
-        if (isEmptyPayload(data?.payload)) {
-          // на сервере пусто — отдаём ему локальные данные
-          lastPushed.current = null;
-          await push();
+        const serverPayload = data?.payload ?? null;
+        setServerUpdatedAt(data?.updatedAt ?? null);
+        const localPayload = selectSyncPayload(store.getState());
+        const decision = reconcileSync({
+          serverPayload,
+          localPayload,
+          localOwnerId: getDataOwnerId(),
+          userId,
+        });
+
+        if (decision === 'take-server') {
+          applySyncPayload(store, serverPayload ?? EMPTY_PAYLOAD);
+          lastPushed.current = JSON.stringify(selectSyncPayload(store.getState()));
+          if (userId) setDataOwnerId(userId);
+          syncReady.current = true;
+          setStatus('synced');
           return;
         }
 
-        applySyncPayload(store, data.payload);
-        lastPushed.current = JSON.stringify(selectSyncPayload(store.getState()));
-        setStatus('synced');
-        } catch {
-        if (!cancelled) setStatus('error');
+        if (decision === 'conflict') {
+          setPendingServerPayload(serverPayload);
+          dispatch(
+            syncConflictDetected({
+              serverCards: serverPayload?.cards?.length ?? 0,
+              localCards: localPayload.cards?.length ?? 0,
+              updatedAt: data?.updatedAt ?? null,
+            })
+          );
+          if (userId) setDataOwnerId(userId);
+          syncReady.current = true;
+          setStatus('synced');
+          return;
+        }
+
+        if (userId) setDataOwnerId(userId);
+        syncReady.current = true;
+        await push();
+      } catch (error) {
+        if (cancelled || error?.name === 'AbortError') return;
+        setStatus('error');
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [token, store, push]);
+  }, [token, userId, store, dispatch, push]);
 
-  // Отправка изменений
+  // «Оставить из браузера» — отправить сразу, не через 3 секунды
+  useEffect(() => {
+    if (!token || !forceSyncTick) return;
+    lastPushed.current = null;
+    push();
+  }, [forceSyncTick, token, push]);
+
+  // Правки уходят после паузы. Конфликт и выход эту отправку не пропускают.
   useEffect(() => {
     if (!token) return undefined;
 
     const unsubscribe = store.subscribe(() => {
+      const state = store.getState();
+      if (!state.auth.token || state.auth.conflict || !syncReady.current) return;
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         timerRef.current = null;
@@ -86,6 +171,7 @@ export default function useCloudSync() {
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = null;
       unsubscribe();
     };
   }, [token, store, push]);

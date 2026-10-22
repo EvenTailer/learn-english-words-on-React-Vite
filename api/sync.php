@@ -36,6 +36,23 @@ if ($method === 'PUT' || $method === 'POST') {
         api_fail(400, 'Некорректный JSON');
     }
 
+    // Клиент шлёт метку версии, которую получил при чтении.
+    // Если на сервере уже новее — не затираем чужой копией.
+    $stored = api_user_payload($pdo, $userId);
+    $clientUpdatedAt = $payload['updatedAt'] ?? null;
+    if (!is_string($clientUpdatedAt) || $clientUpdatedAt === '') {
+        $clientUpdatedAt = null;
+    }
+    if ($stored['updatedAt'] !== null && $clientUpdatedAt !== $stored['updatedAt']) {
+        http_response_code(409);
+        echo json_encode([
+            'error' => 'На сервере более новая копия',
+            'payload' => $stored['payload'],
+            'updatedAt' => $stored['updatedAt'],
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // Разрешены только нужные разделы — лишнее не храним
     $clean = [
         'cards' => is_array($payload['cards'] ?? null) ? $payload['cards'] : [],

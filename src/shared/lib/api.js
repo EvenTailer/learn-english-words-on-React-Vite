@@ -5,6 +5,24 @@ const API_BASE = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api`;
 
 const TOKEN_KEY = 'lew-token';
 const USER_KEY = 'lew-user';
+const OWNER_KEY = 'lew-owner';
+
+export class ApiError extends Error {
+  constructor(message, status, data) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
+// Общий выключатель синхронизации: выход отменяет уже летящий PUT
+let syncController = null;
+
+export const abortSyncRequests = () => {
+  syncController?.abort();
+  syncController = null;
+};
 
 export const getToken = () => {
   try {
@@ -41,11 +59,39 @@ export const setStoredUser = (user) => {
   }
 };
 
-// Запрос к API с токеном
-export const apiRequest = async (path, { method = 'GET', body, token } = {}) => {
+// Чей словарь лежит в этом браузере. Чужому аккаунту его не отправляем.
+export const getDataOwnerId = () => {
+  try {
+    return localStorage.getItem(OWNER_KEY);
+  } catch {
+    return null;
+  }
+};
+
+export const setDataOwnerId = (id) => {
+  try {
+    if (id == null || id === '') localStorage.removeItem(OWNER_KEY);
+    else localStorage.setItem(OWNER_KEY, String(id));
+  } catch {
+    // приватный режим
+  }
+};
+
+// Запрос к API с токеном. sync: true — этот запрос можно отменить при выходе.
+export const apiRequest = async (
+  path,
+  { method = 'GET', body, token, sync = false } = {}
+) => {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
+
+  let signal;
+  if (sync) {
+    syncController?.abort();
+    syncController = new AbortController();
+    signal = syncController.signal;
+  }
 
   let response;
   try {
@@ -53,14 +99,24 @@ export const apiRequest = async (path, { method = 'GET', body, token } = {}) => 
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
     });
-  } catch {
-    throw new Error('Сервер недоступен. Проверьте интернет');
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      const aborted = new ApiError('Запрос отменён', 0, null);
+      aborted.name = 'AbortError';
+      throw aborted;
+    }
+    throw new ApiError('Сервер недоступен. Проверьте интернет', 0, null);
   }
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data?.error || `Ошибка сервера (${response.status})`);
+    throw new ApiError(
+      data?.error || `Ошибка сервера (${response.status})`,
+      response.status,
+      data
+    );
   }
   return data;
 };
@@ -77,7 +133,8 @@ export const logoutRequest = (token) =>
 
 export const fetchSession = (token) => apiRequest('me.php', { token });
 
-export const fetchServerData = (token) => apiRequest('sync.php', { token });
+export const fetchServerData = (token) =>
+  apiRequest('sync.php', { token, sync: true });
 
 export const pushServerData = (token, payload) =>
-  apiRequest('sync.php', { method: 'PUT', body: payload, token });
+  apiRequest('sync.php', { method: 'PUT', body: payload, token, sync: true });
