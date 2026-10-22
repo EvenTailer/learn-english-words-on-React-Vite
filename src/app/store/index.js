@@ -9,6 +9,7 @@ import {
   persistReducer,
 } from 'redux-persist';
 import cardsReducer from '../../features/words/wordsSlice';
+import authReducer from '../../features/auth/authSlice';
 import learnReducer from '../../features/learn/learnSlice';
 import listsReducer from '../../features/lists/listsSlice';
 import dictionaryReducer from '../../features/dictionary/dictionarySlice';
@@ -57,6 +58,7 @@ const persistedListsReducer = persistReducer(
 );
 
 const rootReducer = combineReducers({
+  auth: authReducer,
   cards: persistedCardsReducer,
   progress: persistedProgressReducer,
   stats: persistedStatsReducer,

@@ -3,10 +3,11 @@ import { useAppSelector } from '../../app/store/hooks';
 import { selectStreak } from '../../features/stats/selectors';
 import { NAV_ITEMS } from '../../shared/lib/navigation';
 import Icon from '../../shared/ui/Icon';
+import AuthMenu from '../AuthMenu/AuthMenu';
 import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
 import styles from './AppHeader.module.css';
 
-export default function AppHeader() {
+export default function AppHeader({ syncStatus }) {
   const streak = useAppSelector(selectStreak);
 
   return (
@@ -36,6 +37,7 @@ export default function AppHeader() {
         </nav>
 
         <div className={styles.actions}>
+          <AuthMenu syncStatus={syncStatus} />
           {streak?.current > 0 && (
             <span
               className={styles.streak}

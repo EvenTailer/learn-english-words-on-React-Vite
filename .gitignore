@@ -42,3 +42,7 @@ GEMINI.md
 .cursorrules
 .mcprules
 .zedrules
+
+# Серверная часть: настройки и база данных — не в репозиторий
+api/config.php
+data/
