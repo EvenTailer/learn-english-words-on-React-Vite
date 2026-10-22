@@ -119,6 +119,25 @@ describe('progressSlice', () => {
     expect(Object.keys(state.words)).toHaveLength(2);
   });
 
+  it('не падает, если словарь прогресса оказался массивом', () => {
+    const state = reducer(
+      { words: [] },
+      wordAnswered({ englishWord: 'great', russianWord: 'отличный', correct: false })
+    );
+    expect(Array.isArray(state.words)).toBe(false);
+    expect(state.words.great.wrong).toBe(1);
+    expect(state.words.great.status).toBe('learning');
+  });
+
+  it('заменяет битую запись слова и ставит срок повторения', () => {
+    const state = reducer(
+      { words: { great: [] } },
+      wordAnswered({ englishWord: 'great', russianWord: 'отличный', correct: true })
+    );
+    expect(state.words.great.correct).toBe(1);
+    expect(typeof state.words.great.dueAt).toBe('number');
+  });
+
   it('удаляет запись прогресса', () => {
     let state = reducer(
       undefined,

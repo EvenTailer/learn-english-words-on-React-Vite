@@ -10,6 +10,36 @@ const initialState = {
   words: {}, // key -> { key, englishWord, russianWord, status, correct, wrong, lastSeenAt, masteredAt }
 };
 
+const blankWord = (key, englishWord, russianWord) => ({
+  key,
+  englishWord: String(englishWord).trim(),
+  russianWord: russianWord ?? '',
+  status: 'new',
+  correct: 0,
+  wrong: 0,
+  streak: 0,
+  dueAt: null,
+  lastSeenAt: null,
+  masteredAt: null,
+});
+
+// IndexedDB иногда поднимает words массивом или кладёт в запись массив.
+// Запись свойства в массив роняет Immer, и вердикт на карточке не появляется.
+const ensureWordMap = (state) => {
+  if (state.words && typeof state.words === 'object' && !Array.isArray(state.words)) {
+    return;
+  }
+  const map = {};
+  if (Array.isArray(state.words)) {
+    for (const entry of state.words) {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+      const key = progressKey(entry.key || entry.englishWord);
+      if (key) map[key] = entry;
+    }
+  }
+  state.words = map;
+};
+
 const progressSlice = createSlice({
   name: 'progress',
   initialState,
@@ -59,18 +89,12 @@ const progressSlice = createSlice({
       const key = progressKey(englishWord);
       if (!key) return;
 
-      const existing = state.words[key] ?? {
-        key,
-        englishWord: String(englishWord).trim(),
-        russianWord: russianWord ?? '',
-        status: 'new',
-        correct: 0,
-        wrong: 0,
-        streak: 0,
-        dueAt: null,
-        lastSeenAt: null,
-        masteredAt: null,
-      };
+      ensureWordMap(state);
+      const stored = state.words[key];
+      const existing =
+        stored && typeof stored === 'object' && !Array.isArray(stored)
+          ? stored
+          : blankWord(key, englishWord, russianWord);
 
       if (correct) {
         // count — накопительный счётчик верных ответов по этой карточке
@@ -114,6 +138,7 @@ const progressSlice = createSlice({
     // Полная замена прогресса — при импорте бэкапа
     progressReplaced(state, action) {
       state.words = action.payload ?? {};
+      ensureWordMap(state);
     },
 
     wordRemoved(state, action) {
