@@ -34,6 +34,10 @@ import styles from './LearnPage.module.css';
 
 // Сколько живёт подсветка результата ответа
 const RESULT_HIGHLIGHT_MS = 800;
+// Вердикт виден, затем карточка уходит сама — иначе сессия стоит на «Проверить»
+const ADVANCE_WRONG_MS = 1800;
+const ADVANCE_CORRECT_MS = 900;
+const ADVANCE_REVEAL_MS = 1400;
 
 export default function LearnPage() {
   const dispatch = useAppDispatch();
@@ -74,6 +78,19 @@ export default function LearnPage() {
     const timer = setTimeout(() => setLastResult(null), RESULT_HIGHLIGHT_MS);
     return () => clearTimeout(timer);
   }, [lastResult]);
+
+  // После вердикта сами идём дальше. «Далее» по-прежнему срабатывает сразу
+  // и сбрасывает этот таймер, потому что вердикт очищается.
+  useEffect(() => {
+    if (!currentCard || (!verdict && !revealed)) return undefined;
+    const delay = verdict
+      ? verdict.correct
+        ? ADVANCE_CORRECT_MS
+        : ADVANCE_WRONG_MS
+      : ADVANCE_REVEAL_MS;
+    const timer = setTimeout(() => dispatch(nextCard()), delay);
+    return () => clearTimeout(timer);
+  }, [verdict, revealed, currentCard, dispatch]);
   // Уходя со страницы, закрываем план: в следующий раз «Учить» снова спросит,
   // что именно учить, а не продолжит прошлую сессию с того же места.
   // Ответы уже записаны в прогресс — ничто не теряется.

@@ -46,12 +46,13 @@ export default function LearnCard({
   const result =
     lastResult && lastResult.cardId === card.id ? lastResult : null;
 
+  const tone = verdict
+    ? verdict.correct
+      ? 'correct'
+      : 'wrong'
+    : result?.type;
   const resultClass =
-    result?.type === 'correct'
-      ? styles.correct
-      : result?.type === 'wrong'
-        ? styles.wrong
-        : '';
+    tone === 'correct' ? styles.correct : tone === 'wrong' ? styles.wrong : '';
 
   const choiceClass = (option) => {
     const classes = [styles.choice];
@@ -254,9 +255,11 @@ export default function LearnCard({
 
         <p className={styles.hint}>
           {verdict
-            ? 'Нажмите «Далее», чтобы продолжить'
+            ? verdict.correct
+              ? 'Верно — сейчас следующее слово'
+              : 'Неверно — сейчас следующее слово'
             : revealed
-              ? 'Ответ открыт — нажмите «Далее»'
+              ? 'Ответ открыт — сейчас следующее слово'
               : isChoice
                 ? 'Выберите перевод и нажмите «Проверить»'
                 : 'Впишите перевод и нажмите «Проверить»'}
